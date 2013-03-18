@@ -138,7 +138,7 @@ objects.
     .. method:: is_loaded
 
         :rtype:     :class:`int`
-        :returns:   wether this playlist has been loaded by the client
+        :returns:   whether this playlist has been loaded by the client
 
     .. method:: name
 
@@ -166,8 +166,8 @@ objects.
 
     .. method:: remove_tracks(tracks)
 
-        :param tracks:  A list of tracks to be removed from the playlist.
-        :type tracks:   list of :class:`Track`
+        :param tracks:  A list of track positions to be removed from the playlist.
+        :type tracks:   list of :class:`int`
 
     .. method:: subscribers
 

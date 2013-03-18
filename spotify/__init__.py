@@ -1,4 +1,4 @@
-__version__ = '1.7'
+__version__ = '1.10'
 
 class SpotifyError(Exception):
     pass
@@ -33,4 +33,3 @@ _add_null_handler_for_logging()
 #from spotify._spotify import ToplistBrowser
 #
 #from spotify._spotify import api_version
-#from spotify._spotify import connect

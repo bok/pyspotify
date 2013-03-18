@@ -4,6 +4,101 @@ Changes
 
 .. currentmodule:: spotify
 
+v1.10 (2012-12-12)
+==================
+
+This version is compatible with *libspotify* version 12.
+
+**API changes**
+
+- Session method `connect` has been renamed to :meth:`Session.login` for
+  consistency.
+
+- Add :meth:`spotify.Link.as_playlist`. (Fixes: :issue:`82`)
+
+**New features**
+
+- Split session creation and user login. The session must be created only once
+  per process. After that, the application can connect and disconnect a user
+  at will. (Fixes: :issue:`73`)
+
+  New methods: :meth:`Session.create`, :meth:`Session.relogin`,
+  :meth:`Session.logout`.
+
+  The :class:`Session` object now calls
+  :meth:`manager.SpotifySessionManager._manager_logged_out` when getting a
+  `logged_out` event from *libspotify*, or
+  `manager.SpotifySessionManager.logged_out` if the former is not defined.
+
+
+v1.9.1 (2012-11-23)
+===================
+
+This version, like 1.9, is compatible with *libspotify* version 12.
+
+**Bug fixes**
+
+- Fixed memory leak caused by the ``from_*`` methods on :class:`spotify.Link`.
+  The memory leak was introduced in v1.2 in June 2011, so all users should
+  really update to this version.
+
+
+v1.9 (2012-11-20)
+=================
+
+This version, like 1.8, is compatible with *libspotify* version 12.
+
+**New features**
+
+- Added optional parameters ``proxy``, ``proxy_username``, ``proxy_password``
+  to :class:`spotify.manager.SpotifySessionManager`, to allow libspotify to
+  connect to the Spotify service through an authenticated proxy. Thanks to
+  Dvad.
+
+- Added methods :meth:`spotify.Track.is_autolinked` and
+  :meth:`spotify.Track.playable` to support autolinked tracks. (Fixes:
+  :issue:`74`)
+
+
+v1.8.1 (2012-11-04)
+===================
+
+Minor fix to ease Debian package building:
+
+- Replace ``Makefile`` used as a development convenience with Fabric and
+  ``fabfile.py``, so that debhelper doesn't think the project is built using
+  make.
+
+
+v1.8 (2012-11-04)
+=================
+
+Updated to work with *libspotify* version 12:
+
+- ``sp_album_cover`` requires a preferred image size. For now, it's hard coded
+  to ``SP_IMAGE_SIZE_NORMAL``. Thanks to olle. (Fixes: :issue:`66`)
+
+Since the above API change to libspotify isn't reflected in the pyspotify API
+yet, there are no API changes between v1.7.1 and 1.8.
+
+
+v1.7.1 (2012-09-07)
+===================
+
+Maintenance release to fix a login issue experienced by some users.
+
+This version, like 1.7, is compatible with *libspotify* version 11.
+
+**Bug fixes**
+
+- Fix bogus comparision of pointers. This caused ``SpotifyError: No credentials
+  stored`` for some users. (Fixes: :issue:`65`)
+
+- Fix wrong return type in the :meth:`Playlist.remove_tracks` docs.
+
+- Remove unused include of ``pthread.h``, which caused warnings from lintian.
+
+
 v1.7 (2012-04-22)
 =================
 
