@@ -1,10 +1,10 @@
 import os as _os
 import ctypes as _ctypes
 
-SPOTIFY_API_VERSION = 11
+SPOTIFY_API_VERSION = 12
 
 if _os.environ.get('USE_LIBMOCKSPOTIFY'):
-    _libspotify = _ctypes.CDLL('libmockspotify.so.0')
+    _libspotify = _ctypes.CDLL('libmockspotify.so.1')
 else:
     _libspotify = _ctypes.CDLL('libspotify.so.%s' % SPOTIFY_API_VERSION)
 
@@ -280,6 +280,10 @@ class sp_session_config(_ctypes.Structure):
         ('dont_save_metadata_for_playlists', sp_bool),
         ('initially_unload_playlists', sp_bool),
         ('device_id', _ctypes.c_char_p),
+        ('proxy', _ctypes.c_char_p),
+        ('proxy_username', _ctypes.c_char_p),
+        ('proxy_password', _ctypes.c_char_p),
+        ('ca_certs_filename', _ctypes.c_char_p),
         ('tracefile', _ctypes.c_char_p),
     ]
 
