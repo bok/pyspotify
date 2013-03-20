@@ -1,5 +1,6 @@
 import os as _os
 import ctypes as _ctypes
+from functools import wraps
 
 SPOTIFY_API_VERSION = 12
 
@@ -7,7 +8,6 @@ if _os.environ.get('USE_LIBMOCKSPOTIFY'):
     _libspotify = _ctypes.CDLL('libmockspotify.so.1')
 else:
     _libspotify = _ctypes.CDLL('libspotify.so.%s' % SPOTIFY_API_VERSION)
-
 
 ### Spotify types & structs
 
@@ -94,6 +94,9 @@ SP_ERROR_OFFLINE_EXPIRED = 33
 SP_ERROR_OFFLINE_NOT_ALLOWED = 34
 SP_ERROR_OFFLINE_LICENSE_LOST = 35
 SP_ERROR_OFFLINE_LICENSE_ERROR = 36
+SP_ERROR_LASTFM_AUTH_ERROR = 39
+SP_ERROR_INVALID_ARGUMENT = 40
+SP_ERROR_SYSTEM_FAILURE = 41
 
 _sp_error_message = _libspotify.sp_error_message
 _sp_error_message.argtypes = [sp_error]
@@ -107,6 +110,15 @@ class SpError(Exception):
         super(SpError, self).__init__('%s (error %d)' % (
             sp_error_message(sp_error), sp_error))
 
+# Decorator for API function returning sp_error: we return None and raise SpError if
+# the return value is != SP_ERROR_OK
+def returns_sp_error(sp_func):
+    @wraps(sp_func)
+    def wrapper(*args, **kwds):
+        error = sp_func(*args, **kwds)
+        if error != SP_ERROR_OK:
+            raise SpError(error)
+    return wrapper
 
 ### Session handling
 
@@ -136,6 +148,9 @@ SP_PLAYLIST_TYPE_START_FOLDER = 1
 SP_PLAYLIST_TYPE_END_FOLDER = 2
 SP_PLAYLIST_TYPE_PLACEHOLDER = 3
 
+SP_SEARCH_STANDARD = 0
+SP_SEARCH_SUGGEST = 1
+
 SP_PLAYLIST_OFFLINE_STATUS_NO = 0
 SP_PLAYLIST_OFFLINE_STATUS_YES = 1
 SP_PLAYLIST_OFFLINE_STATUS_DOWNLOADING = 2
@@ -155,6 +170,10 @@ SP_TRACK_OFFLINE_DONE_EXPIRED = 5
 SP_TRACK_OFFLINE_LIMIT_EXCEEDED = 6
 SP_TRACK_OFFLINE_DONE_RESYNC = 7
 
+SP_IMAGE_SIZE_NORMAL = 0
+SP_IMAGE_SIZE_SMALL = 1
+SP_IMAGE_SIZE_LARGE = 2
+
 class sp_audio_buffer_stats(_ctypes.Structure):
     _fields_ = [
         ('samples', _ctypes.c_int),
@@ -162,7 +181,10 @@ class sp_audio_buffer_stats(_ctypes.Structure):
     ]
 
 class sp_subscribers(_ctypes.Structure):
-    pass # XXX Add field spec?
+    _fields_ = [
+        ('count', _ctypes.c_int),
+        ('subscribers', _ctypes.POINTER(_ctypes.c_char_p)),
+    ]
 
 SP_CONNECTION_TYPE_UNKNOWN = 0
 SP_CONNECTION_TYPE_NONE = 1
@@ -180,14 +202,24 @@ SP_ARTISTBROWSE_FULL = 0
 SP_ARTISTBROWSE_NO_TRACKS = 1
 SP_ARTISTBROWSE_NO_ALBUMS = 2
 
+SP_SOCIAL_PROVIDER_SPOTIFY  = 0
+SP_SOCIAL_PROVIDER_FACEBOOK = 1
+SP_SOCIAL_PROVIDER_LASTFM   = 2
+
+SP_SCROBBLING_STATE_USE_GLOBAL_SETTING    = 0
+SP_SCROBBLING_STATE_LOCAL_ENABLED         = 1
+SP_SCROBBLING_STATE_LOCAL_DISABLED        = 2
+SP_SCROBBLING_STATE_GLOBAL_ENABLED        = 3
+SP_SCROBBLING_STATE_GLOBAL_DISABLED       = 4
+
 class sp_offline_sync_status(_ctypes.Structure):
     _fields_ = [
         ('queued_tracks', _ctypes.c_int),
-        ('queued_bytes', _ctypes.c_ulonglong),
+        ('queued_bytes', _ctypes.c_uint64),
         ('done_tracks', _ctypes.c_int),
-        ('done_bytes', _ctypes.c_ulonglong),
+        ('done_bytes', _ctypes.c_uint64),
         ('copied_tracks', _ctypes.c_int),
-        ('copied_bytes', _ctypes.c_ulonglong),
+        ('copied_bytes', _ctypes.c_uint64),
         ('willnotcopy_tracks', _ctypes.c_int),
         ('error_tracks', _ctypes.c_int),
         ('syncing', sp_bool),
@@ -245,6 +277,18 @@ SP_SESSION_OFFLINE_STATUS_UPDATED_FUNC = _ctypes.CFUNCTYPE(None,
 SP_SESSION_OFFLINE_ERROR_FUNC = _ctypes.CFUNCTYPE(None,
     _ctypes.POINTER(sp_session), sp_error)
 
+SP_SESSION_CREDENTIALS_BLOB_UPDATED_FUNC = _ctypes.CFUNCTYPE(None,
+    _ctypes.POINTER(sp_session), _ctypes.c_char_p)
+
+SP_SESSION_CONNECTIONSTATE_UPDATED_FUNC = _ctypes.CFUNCTYPE(None,
+    _ctypes.POINTER(sp_session))
+
+SP_SESSION_SCROBBLE_ERROR_FUNC = _ctypes.CFUNCTYPE(None,
+    _ctypes.POINTER(sp_session), sp_error)
+
+SP_SESSION_PRIVATE_SESSION_MODE_CHANGED_FUNC = _ctypes.CFUNCTYPE(None,
+    _ctypes.POINTER(sp_session), sp_bool)
+
 class sp_session_callbacks(_ctypes.Structure):
     _fields_ = [
         ('logged_in', SP_SESSION_LOGGED_IN_FUNC),
@@ -264,6 +308,10 @@ class sp_session_callbacks(_ctypes.Structure):
         ('get_audio_buffer_stats', SP_SESSION_GET_AUDIO_BUFFER_STATS_FUNC),
         ('offline_status_updated', SP_SESSION_OFFLINE_STATUS_UPDATED_FUNC),
         ('offline_error', SP_SESSION_OFFLINE_ERROR_FUNC),
+        ('credentials_blob_updated', SP_SESSION_CREDENTIALS_BLOB_UPDATED_FUNC),
+        ('connectionstate_updated', SP_SESSION_CONNECTIONSTATE_UPDATED_FUNC),
+        ('scrobble_error', SP_SESSION_SCROBBLE_ERROR_FUNC),
+        ('private_session_mode_changed', SP_SESSION_PRIVATE_SESSION_MODE_CHANGED_FUNC),
     ]
 
 class sp_session_config(_ctypes.Structure):
@@ -304,10 +352,12 @@ def sp_session_create(config, callbacks):
 _sp_session_login = _libspotify.sp_session_login
 _sp_session_login.argtypes = [_ctypes.POINTER(sp_session),
     _ctypes.c_char_p, _ctypes.c_char_p, sp_bool, _ctypes.c_char_p]
+_sp_session_login.restype = sp_error
 
+@returns_sp_error
 def sp_session_login(session, username, password,
         remember_me=False, blob=None):
-    _sp_session_login(session, username, password, remember_me, blob)
+    return _sp_session_login(session, username, password, remember_me, blob)
 
 _sp_session_process_events = _libspotify.sp_session_process_events
 _sp_session_process_events.argtypes = [_ctypes.POINTER(sp_session),

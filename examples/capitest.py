@@ -16,7 +16,8 @@ def main(options):
     cmd_queue = queue.Queue()
 
     appkey_file = os.path.join(os.path.dirname(__file__), 'spotify_appkey.key')
-    appkey = open(appkey_file, mode='rb').read()
+    with open(appkey_file, mode='rb') as f:
+        appkey = f.read()
 
     callbacks = capi.sp_session_callbacks(
         logged_in=capi.SP_SESSION_LOGGED_IN_FUNC(
@@ -37,7 +38,7 @@ def main(options):
         application_key_size=len(appkey),
         user_agent='pyspotify.capi test'.encode('utf-8'),
         device_id='pyspotify.capi test'.encode('utf-8'),
-        tracefile='/tmp/libspotify-cache/trace.log'.encode('utf-8'),
+        tracefile='/tmp/libspotify-trace.log'.encode('utf-8'),
     )
 
     session = capi.sp_session_create(config, callbacks)
