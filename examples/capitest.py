@@ -23,7 +23,7 @@ def main(options):
         logged_in=capi.SP_SESSION_LOGGED_IN_FUNC(
             lambda *a: logger.debug('logged_in called')),
         logged_out=capi.SP_SESSION_LOGGED_OUT_FUNC(
-            lambda *a: logger.debug('logged_out called')),
+            lambda *a: cmd_queue.put({'command': 'exit'})),
         connection_error=capi.SP_SESSION_CONNECTION_ERROR_FUNC(
             lambda *a: logger.debug('connection_error called')),
         notify_main_thread=capi.SP_SESSION_NOTIFY_MAIN_THREAD_FUNC(
@@ -53,11 +53,16 @@ def main(options):
                 logger.debug('Got message; processing events')
                 timeout = capi.sp_session_process_events(session) / 1000.0
                 logger.debug('Will wait %.3fs for next message', timeout)
+            elif message.get('command') == 'exit':
+                logger.debug('Got message; exiting')
+                break
         except queue.Empty:
             logger.debug(
                 'No message received before timeout. Processing events')
             timeout = capi.sp_session_process_events(session) / 1000.0
             logger.debug('Will wait %.3fs for next message', timeout)
+        except KeyboardInterrupt:
+            capi.sp_session_logout(session)
 
 
 if __name__ == '__main__':
