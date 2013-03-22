@@ -122,6 +122,8 @@ def returns_sp_error(sp_func):
 
 ### Session handling
 
+sp_connectionstate = _ctypes.c_int
+
 SP_CONNECTION_STATE_LOGGED_OUT = 0
 SP_CONNECTION_STATE_LOGGED_IN = 1
 SP_CONNECTION_STATE_DISCONNECTED = 2
@@ -138,6 +140,8 @@ class sp_audioformat(_ctypes.Structure):
         ('sample_rate', _ctypes.c_int),
         ('channels', _ctypes.c_int),
     ]
+
+sp_bitrate = _ctypes.c_int
 
 SP_BITRATE_160k = 0
 SP_BITRATE_320k = 1
@@ -323,7 +327,7 @@ class sp_session_config(_ctypes.Structure):
         ('application_key_size', _ctypes.c_size_t),
         ('user_agent', _ctypes.c_char_p),
         ('callbacks', _ctypes.POINTER(sp_session_callbacks)),
-        ('userdata', _ctypes.c_void_p),
+        ('userdata', _ctypes.py_object),
         ('compress_playlists', sp_bool),
         ('dont_save_metadata_for_playlists', sp_bool),
         ('initially_unload_playlists', sp_bool),
@@ -349,6 +353,14 @@ def sp_session_create(config, callbacks):
     else:
         raise SpError(error)
 
+_sp_session_release = _libspotify.sp_session_release
+_sp_session_release.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_release.restype = sp_error
+
+@returns_sp_error
+def sp_session_release(session):
+    return _sp_session_release(session)
+
 _sp_session_login = _libspotify.sp_session_login
 _sp_session_login.argtypes = [_ctypes.POINTER(sp_session),
     _ctypes.c_char_p, _ctypes.c_char_p, sp_bool, _ctypes.c_char_p]
@@ -359,11 +371,219 @@ def sp_session_login(session, username, password,
         remember_me=False, blob=None):
     return _sp_session_login(session, username, password, remember_me, blob)
 
+_sp_session_relogin = _libspotify.sp_session_relogin
+_sp_session_relogin.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_relogin.restype = sp_error
+
+@returns_sp_error
+def sp_session_relogin(session):
+    return _sp_session_relogin(session)
+
+_sp_session_remembered_user = _libspotify.sp_session_remembered_user
+_sp_session_remembered_user.argtypes = [_ctypes.POINTER(sp_session),
+    _ctypes.c_char_p, _ctypes.c_size_t]
+_sp_session_remembered_user.restype = _ctypes.c_int
+
+def sp_session_remembered_user(session):
+    # First, we attempt to get the username length
+    buf = (_ctypes.c_char * 1)()
+    name_len = _sp_session_remembered_user(session, buf, 1)
+    if name_len == -1:
+        return None # No user stored
+
+    buf = (_ctypes.c_char * (name_len + 1))()
+    return _sp_session_remembered_user(session, buf, name_len + 1).decode('utf-8')
+
+_sp_session_user_name = _libspotify.sp_session_user_name
+_sp_session_user_name.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_user_name.restype = _ctypes.c_char_p
+
+def sp_session_user_name(session):
+    return _sp_session_user_name(session).decode('utf-8')
+
+_sp_session_forget_me = _libspotify.sp_session_forget_me
+_sp_session_forget_me.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_forget_me.restype = sp_error
+
+@returns_sp_error
+def sp_session_forget_me(session):
+    return _sp_session_forget_me(session)
+
+_sp_session_user = _libspotify.sp_session_user
+_sp_session_user.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_user.restype = sp_user
+
+def sp_session_user(session):
+    return _sp_session_user(session)
+
+_sp_session_logout = _libspotify.sp_session_logout
+_sp_session_logout.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_logout.restype = sp_error
+
+@returns_sp_error
+def sp_session_logout(session):
+    return _sp_session_logout(session)
+
+_sp_session_flush_caches = _libspotify.sp_session_flush_caches
+_sp_session_flush_caches.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_flush_caches.restype = sp_error
+
+@returns_sp_error
+def sp_session_flush_caches(session):
+    return _sp_session_flush_caches(session)
+
+_sp_session_connectionstate = _libspotify.sp_session_connectionstate
+_sp_session_connectionstate.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_connectionstate.restype = sp_connectionstate
+
+def sp_session_connectionstate(session):
+    return _sp_session_connectionstate(session)
+
+_sp_session_userdata = _libspotify.sp_session_userdata
+_sp_session_userdata.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_userdata.restype = _ctypes.py_object
+
+def sp_session_userdata(session):
+    return _sp_session_userdata(session)
+
+_sp_session_set_cache_size = _libspotify.sp_session_set_cache_size
+_sp_session_set_cache_size.argtypes = [_ctypes.POINTER(sp_session), _ctypes.c_size_t]
+_sp_session_set_cache_size.restype = sp_error
+
+@returns_sp_error
+def sp_session_set_cache_size(session, size):
+    return _sp_session_set_cache_size(session, size)
+
 _sp_session_process_events = _libspotify.sp_session_process_events
 _sp_session_process_events.argtypes = [_ctypes.POINTER(sp_session),
     _ctypes.POINTER(_ctypes.c_int)]
+_sp_session_process_events.restype = sp_error
 
 def sp_session_process_events(session):
     next_timeout = _ctypes.c_int(0)
-    _sp_session_process_events(session, _ctypes.byref(next_timeout))
-    return next_timeout.value
+    error = _sp_session_process_events(session, _ctypes.byref(next_timeout))
+    if error == SP_ERROR_OK:
+        return next_timeout.value
+    else:
+        raise SpError(error)
+
+_sp_session_player_load = _libspotify.sp_session_player_load
+_sp_session_player_load.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_track)]
+_sp_session_player_load.restype = sp_error
+
+@returns_sp_error
+def sp_session_player_load(session, track):
+    return _sp_session_player_load(session, track)
+
+_sp_session_player_seek = _libspotify.sp_session_player_seek
+_sp_session_player_seek.argtypes = [_ctypes.POINTER(sp_session), _ctypes.c_int]
+_sp_session_player_seek.restype = sp_error
+
+@returns_sp_error
+def sp_session_player_seek(session, offset):
+    return _sp_session_player_seek(session, offset)
+
+_sp_session_player_play = _libspotify.sp_session_player_play
+_sp_session_player_play.argtypes = [_ctypes.POINTER(sp_session), sp_bool]
+_sp_session_player_play.restype = sp_error
+
+@returns_sp_error
+def sp_session_player_play(session, play):
+    return _sp_session_player_play(session, play)
+
+_sp_session_player_unload = _libspotify.sp_session_player_unload
+_sp_session_player_unload.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_player_unload.restype = sp_error
+
+@returns_sp_error
+def sp_session_player_unload(session):
+    return _sp_session_player_unload(session)
+
+_sp_session_player_prefetch = _libspotify.sp_session_player_prefetch
+_sp_session_player_prefetch.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_track)]
+_sp_session_player_prefetch.restype = sp_error
+
+@returns_sp_error
+def sp_session_player_prefetch(session, track):
+    return _sp_session_player_prefetch(session, track)
+
+_sp_session_playlistcontainer = _libspotify.sp_session_playlistcontainer
+_sp_session_playlistcontainer.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_playlistcontainer.restype = _ctypes.POINTER(sp_playlistcontainer)
+
+def sp_session_playlistcontainer(session):
+    return _sp_session_playlistcontainer(session)
+
+_sp_session_inbox_create = _libspotify.sp_session_inbox_create
+_sp_session_inbox_create.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_inbox_create.restype = _ctypes.POINTER(sp_playlist)
+
+def sp_session_inbox_create(session):
+    return _sp_session_inbox_create(session)
+
+_sp_session_starred_create = _libspotify.sp_session_starred_create
+_sp_session_starred_create.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_starred_create.restype = _ctypes.POINTER(sp_playlist)
+
+def sp_session_starred_create(session):
+    return _sp_session_starred_create(session)
+
+_sp_session_starred_for_user_create = _libspotify.sp_session_starred_for_user_create
+_sp_session_starred_for_user_create.argtypes = [_ctypes.POINTER(sp_session), _ctypes.c_char_p]
+_sp_session_starred_for_user_create.restype = _ctypes.POINTER(sp_playlist)
+
+def sp_session_starred_for_user_create(session, canonical_username):
+    return _sp_session_starred_for_user_create(session, canonical_username)
+
+_sp_session_publishedcontainer_for_user_create = _libspotify.sp_session_publishedcontainer_for_user_create
+_sp_session_publishedcontainer_for_user_create.argtypes = [_ctypes.POINTER(sp_session), _ctypes.c_char_p]
+_sp_session_publishedcontainer_for_user_create.restype = _ctypes.POINTER(sp_playlistcontainer)
+
+def sp_session_publishedcontainer_for_user_create(session, canonical_username):
+    return _sp_session_publishedcontainer_for_user_create(session, canonical_username)
+
+_sp_session_preferred_bitrate = _libspotify.sp_session_preferred_bitrate
+_sp_session_preferred_bitrate.argtypes = [_ctypes.POINTER(sp_session), sp_bitrate]
+_sp_session_preferred_bitrate.restype = sp_error
+
+@returns_sp_error
+def sp_session_preferred_bitrate(session, bitrate):
+    return _sp_session_preferred_bitrate(session, bitrate)
+
+_sp_session_preferred_offline_bitrate = _libspotify.sp_session_preferred_offline_bitrate
+_sp_session_preferred_offline_bitrate.argtypes = [_ctypes.POINTER(sp_session), sp_bitrate, sp_bool]
+_sp_session_preferred_offline_bitrate.restype = sp_error
+
+@returns_sp_error
+def sp_session_preferred_offline_bitrate(session, bitrate, allow_resync):
+    return _sp_session_preferred_offline_bitrate(session, bitrate, allow_resync)
+
+_sp_session_get_volume_normalization = _libspotify.sp_session_get_volume_normalization
+_sp_session_get_volume_normalization.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_get_volume_normalization.restype = sp_bool
+
+def sp_session_get_volume_normalization(session):
+    return (_sp_session_get_volume_normalization(session) != 0)
+
+_sp_session_set_volume_normalization = _libspotify.sp_session_set_volume_normalization
+_sp_session_set_volume_normalization.argtypes = [_ctypes.POINTER(sp_session), sp_bool]
+_sp_session_set_volume_normalization.restype = sp_error
+
+@returns_sp_error
+def sp_session_set_volume_normalization(session, on):
+    return _sp_session_set_volume_normalization(session, on)
+
+_sp_session_set_private_session = _libspotify.sp_session_set_private_session
+_sp_session_set_private_session.argtypes = [_ctypes.POINTER(sp_session), sp_bool]
+_sp_session_set_private_session.restype = sp_error
+
+@returns_sp_error
+def sp_session_set_private_session(session, enabled):
+    return _sp_session_set_private_session(session, enabled)
+
+_sp_session_is_private_session = _libspotify.sp_session_is_private_session
+_sp_session_is_private_session.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_is_private_session.restype = sp_bool
+
+def sp_session_is_private_session(session):
+    return (_sp_session_is_private_session(session) != 0)
