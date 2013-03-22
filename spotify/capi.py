@@ -190,12 +190,16 @@ class sp_subscribers(_ctypes.Structure):
         ('subscribers', _ctypes.POINTER(_ctypes.c_char_p)),
     ]
 
+sp_connection_type = _ctypes.c_int
+
 SP_CONNECTION_TYPE_UNKNOWN = 0
 SP_CONNECTION_TYPE_NONE = 1
 SP_CONNECTION_TYPE_MOBILE = 2
 SP_CONNECTION_TYPE_MOBILE_ROAMING = 3
 SP_CONNECTION_TYPE_WIFI = 4
 SP_CONNECTION_TYPE_WIRED = 5
+
+sp_connection_rules = _ctypes.c_int
 
 SP_CONNECTION_RULE_NETWORK = 0x1
 SP_CONNECTION_RULE_NETWORK_IF_ROAMING = 0x2
@@ -206,9 +210,13 @@ SP_ARTISTBROWSE_FULL = 0
 SP_ARTISTBROWSE_NO_TRACKS = 1
 SP_ARTISTBROWSE_NO_ALBUMS = 2
 
+sp_social_provider = _ctypes.c_int
+
 SP_SOCIAL_PROVIDER_SPOTIFY  = 0
 SP_SOCIAL_PROVIDER_FACEBOOK = 1
 SP_SOCIAL_PROVIDER_LASTFM   = 2
+
+sp_scrobbling_state = _ctypes.c_int
 
 SP_SCROBBLING_STATE_USE_GLOBAL_SETTING    = 0
 SP_SCROBBLING_STATE_LOCAL_ENABLED         = 1
@@ -587,3 +595,102 @@ _sp_session_is_private_session.restype = sp_bool
 
 def sp_session_is_private_session(session):
     return (_sp_session_is_private_session(session) != 0)
+
+_sp_session_set_scrobbling = _libspotify.sp_session_set_scrobbling
+_sp_session_set_scrobbling.argtypes = [_ctypes.POINTER(sp_session), sp_social_provider,
+                                       sp_scrobbling_state]
+_sp_session_set_scrobbling.restype = sp_error
+
+@returns_sp_error
+def sp_session_set_scrobbling(session, provider, state):
+    return _sp_session_set_scrobbling(session, provider, state)
+
+_sp_session_is_scrobbling = _libspotify.sp_session_is_scrobbling
+_sp_session_is_scrobbling.argtypes = [_ctypes.POINTER(sp_session), sp_social_provider,
+                                      _ctypes.POINTER(sp_scrobbling_state)]
+_sp_session_is_scrobbling.restype = sp_error
+
+def sp_session_is_scrobbling(session, provider):
+    state = sp_scrobbling_state()
+    error = _sp_session_is_scrobbling(session, provider, _ctypes.byref(state))
+    if error != SP_ERROR_OK:
+        raise SpError(error)
+    return state
+
+_sp_session_is_scrobbling_possible = _libspotify.sp_session_is_scrobbling_possible
+_sp_session_is_scrobbling_possible.argtypes = [_ctypes.POINTER(sp_session), sp_social_provider,
+                                               _ctypes.POINTER(sp_bool)]
+_sp_session_is_scrobbling_possible.restype = sp_error
+
+def sp_session_is_scrobbling_possible(session, provider):
+    out = sp_bool()
+    error = _sp_session_is_scrobbling(session, provider, _ctypes.byref(out))
+    if error != SP_ERROR_OK:
+        raise SpError(error)
+    return out
+
+_sp_session_set_social_credentials = _libspotify.sp_session_set_social_credentials
+_sp_session_set_social_credentials.argtypes = [_ctypes.POINTER(sp_session), sp_social_provider,
+                                              _ctypes.c_char_p, _ctypes.c_char_p]
+_sp_session_set_social_credentials.restype = sp_error
+
+@returns_sp_error
+def sp_session_set_social_credentials(session, username, password):
+    return _sp_session_set_social_credentials(session, username.encode('utf-8'),
+                                                       password.encode('utf-8'))
+
+_sp_session_set_connection_type = _libspotify.sp_session_set_connection_type
+_sp_session_set_connection_type.argtypes = [_ctypes.POINTER(sp_session), sp_connection_type]
+_sp_session_set_connection_type.restype = sp_error
+
+@returns_sp_error
+def sp_session_set_connection_type(session, conntype):
+    return _sp_session_set_connection_type(session, conntype)
+
+_sp_session_set_connection_rules = _libspotify.sp_session_set_connection_rules
+_sp_session_set_connection_rules.argruless = [_ctypes.POINTER(sp_session), sp_connection_rules]
+_sp_session_set_connection_rules.restype = sp_error
+
+@returns_sp_error
+def sp_session_set_connection_rules(session, rules):
+    return _sp_session_set_connection_rules(session, rules)
+
+_sp_offline_tracks_to_sync = _libspotify.sp_offline_tracks_to_sync
+_sp_offline_tracks_to_sync.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_offline_tracks_to_sync.restype = _ctypes.c_int
+
+def sp_offline_tracks_to_sync(session):
+    return _sp_offline_tracks_to_sync(session)
+
+_sp_offline_num_playlists = _libspotify.sp_offline_num_playlists
+_sp_offline_num_playlists.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_offline_num_playlists.restype = _ctypes.c_int
+
+def sp_offline_num_playlists(session):
+    return _sp_offline_num_playlists(session)
+
+_sp_offline_sync_get_status = _libspotify.sp_offline_sync_get_status
+_sp_offline_sync_get_status.argtypes = [_ctypes.POINTER(sp_session),
+                                        _ctypes.POINTER(sp_offline_sync_status)]
+_sp_offline_sync_get_status.restype = sp_offline_sync_status
+
+def sp_offline_sync_get_status(session):
+    status = sp_offline_sync_status()
+    if _sp_offline_sync_get_status(session, _ctypes.byref(status)):
+        return status
+
+_sp_offline_time_left = _libspotify.sp_offline_time_left
+_sp_offline_time_left.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_offline_time_left.restype = _ctypes.c_int
+
+def sp_offline_time_left(session):
+    return _sp_offline_time_left(session)
+
+_sp_session_user_country = _libspotify.sp_session_user_country
+_sp_session_user_country.argtypes = [_ctypes.POINTER(sp_session)]
+_sp_session_user_country.restype = _ctypes.c_int
+
+def sp_session_user_country(session):
+    code = _sp_session_user_country(session)
+    return  '{0}{1}'.format( chr((code & 0xFF00) >> 8),
+                             chr(code & 0x00FF)        )
