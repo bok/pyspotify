@@ -174,6 +174,8 @@ SP_TRACK_OFFLINE_DONE_EXPIRED = 5
 SP_TRACK_OFFLINE_LIMIT_EXCEEDED = 6
 SP_TRACK_OFFLINE_DONE_RESYNC = 7
 
+sp_image_size = _ctypes.c_int
+
 SP_IMAGE_SIZE_NORMAL = 0
 SP_IMAGE_SIZE_SMALL = 1
 SP_IMAGE_SIZE_LARGE = 2
@@ -694,3 +696,166 @@ def sp_session_user_country(session):
     code = _sp_session_user_country(session)
     return  '{0}{1}'.format( chr((code & 0xFF00) >> 8),
                              chr(code & 0x00FF)        )
+
+### Links
+
+sp_linktype = _ctypes.c_int
+
+SP_LINKTYPE_INVALID     = 0
+SP_LINKTYPE_TRACK       = 1
+SP_LINKTYPE_ALBUM       = 2
+SP_LINKTYPE_ARTIST      = 3
+SP_LINKTYPE_SEARCH      = 4
+SP_LINKTYPE_PLAYLIST    = 5
+SP_LINKTYPE_PROFILE     = 6
+SP_LINKTYPE_STARRED     = 7
+SP_LINKTYPE_LOCALTRACK  = 8
+SP_LINKTYPE_IMAGE       = 9
+
+_sp_link_create_from_string = _libspotify.sp_link_create_from_string
+_sp_link_create_from_string.argtypes = [_ctypes.c_char_p]
+_sp_link_create_from_string.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_string(link):
+    return _sp_link_create_from_string(link.encode('utf-8'))
+
+_sp_link_create_from_track = _libspotify.sp_link_create_from_track
+_sp_link_create_from_track.argtypes = [_ctypes.POINTER(sp_track), _ctypes.c_int]
+_sp_link_create_from_track.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_track(track, offset=0):
+    return _sp_link_create_from_track(track, offset)
+
+_sp_link_create_from_album = _libspotify.sp_link_create_from_album
+_sp_link_create_from_album.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_link_create_from_album.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_album(album):
+    return _sp_link_create_from_album(album)
+
+_sp_link_create_from_album_cover = _libspotify.sp_link_create_from_album_cover
+_sp_link_create_from_album_cover.argtypes = [_ctypes.POINTER(sp_album), sp_image_size]
+_sp_link_create_from_album_cover.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_album_cover(album, size):
+    return _sp_link_create_from_album_cover(album, size)
+
+_sp_link_create_from_artist = _libspotify.sp_link_create_from_artist
+_sp_link_create_from_artist.argtypes = [_ctypes.POINTER(sp_artist)]
+_sp_link_create_from_artist.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_artist(artist):
+    return _sp_link_create_from_artist(artist)
+
+_sp_link_create_from_artist_portrait = _libspotify.sp_link_create_from_artist_portrait
+_sp_link_create_from_artist_portrait.argtypes = [_ctypes.POINTER(sp_artist), sp_image_size]
+_sp_link_create_from_artist_portrait.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_artist_portrait(artist, size):
+    return _sp_link_create_from_artist_portrait(artist, size)
+
+_sp_link_create_from_artistbrowse_portrait = _libspotify.sp_link_create_from_artistbrowse_portrait
+_sp_link_create_from_artistbrowse_portrait.argtypes = [_ctypes.POINTER(sp_artistbrowse), _ctypes.c_int]
+_sp_link_create_from_artistbrowse_portrait.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_artistbrowse_portrait(artistbrowse, index):
+    return _sp_link_create_from_artistbrowse_portrait(artistbrowse, index)
+
+_sp_link_create_from_search = _libspotify.sp_link_create_from_search
+_sp_link_create_from_search.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_link_create_from_search.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_search(search):
+    return _sp_link_create_from_search(search)
+
+_sp_link_create_from_playlist = _libspotify.sp_link_create_from_playlist
+_sp_link_create_from_playlist.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_link_create_from_playlist.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_playlist(playlist):
+    return _sp_link_create_from_playlist(playlist)
+
+_sp_link_create_from_user = _libspotify.sp_link_create_from_user
+_sp_link_create_from_user.argtypes = [_ctypes.POINTER(sp_user)]
+_sp_link_create_from_user.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_user(user):
+    return _sp_link_create_from_user(user)
+
+_sp_link_create_from_image = _libspotify.sp_link_create_from_image
+_sp_link_create_from_image.argtypes = [_ctypes.POINTER(sp_image)]
+_sp_link_create_from_image.restype = _ctypes.POINTER(sp_link)
+
+def sp_link_create_from_image(image):
+    return _sp_link_create_from_image(image)
+
+_sp_link_as_string = _libspotify.sp_link_as_string
+_sp_link_as_string.argtypes = [_ctypes.POINTER(sp_link), _ctypes.c_char_p, _ctypes.c_int]
+_sp_link_as_string.restype = _ctypes.c_int
+
+def sp_link_as_string(link):
+    # First, we attempt to get the URI length
+    buf = (_ctypes.c_char * 1)()
+    link_len = _sp_link_as_string(link, buf, 1)
+    buf = (_ctypes.c_char * (name_len + 1))()
+    return _sp_link_as_string(link, buf, link_len + 1).decode('utf-8')
+
+_sp_link_type = _libspotify.sp_link_type
+_sp_link_type.argtypes = [_ctypes.POINTER(sp_link)]
+_sp_link_type.restype = sp_linktype
+
+def sp_link_type(link):
+    return _sp_link_type(link)
+
+_sp_link_as_track = _libspotify.sp_link_as_track
+_sp_link_as_track.argtypes = [_ctypes.POINTER(sp_link)]
+_sp_link_as_track.restype = _ctypes.POINTER(sp_track)
+
+def sp_link_as_track(link):
+    return _sp_link_as_track(link)
+
+_sp_link_as_track_and_offset = _libspotify.sp_link_as_track_and_offset
+_sp_link_as_track_and_offset.argtypes = [_ctypes.POINTER(sp_link)]
+_sp_link_as_track_and_offset.restype = _ctypes.POINTER(sp_track)
+
+def sp_link_as_track_and_offset(link):
+    offset = _ctypes.c_int
+    track = _sp_link_as_track_and_offset(link, _ctypes.byref(offset))
+    return track, offset
+
+_sp_link_as_album = _libspotify.sp_link_as_album
+_sp_link_as_album.argtypes = [_ctypes.POINTER(sp_link)]
+_sp_link_as_album.restype = _ctypes.POINTER(sp_album)
+
+def sp_link_as_album(link):
+    return _sp_link_as_album(link)
+
+_sp_link_as_artist = _libspotify.sp_link_as_artist
+_sp_link_as_artist.argtypes = [_ctypes.POINTER(sp_link)]
+_sp_link_as_artist.restype = _ctypes.POINTER(sp_artist)
+
+def sp_link_as_artist(link):
+    return _sp_link_as_artist(link)
+
+_sp_link_as_user = _libspotify.sp_link_as_user
+_sp_link_as_user.argtypes = [_ctypes.POINTER(sp_link)]
+_sp_link_as_user.restype = _ctypes.POINTER(sp_user)
+
+def sp_link_as_user(link):
+    return _sp_link_as_user(link)
+
+_sp_link_add_ref = _libspotify.sp_link_add_ref
+_sp_link_add_ref.argtypes = [_ctypes.POINTER(sp_link)]
+_sp_link_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_link_add_ref(link):
+    return _sp_link_add_ref(link)
+
+_sp_link_release = _libspotify.sp_link_release
+_sp_link_release.argtypes = [_ctypes.POINTER(sp_link)]
+_sp_link_release.restype = sp_error
+
+@returns_sp_error
+def sp_link_release(link):
+    return _sp_link_release(link)
