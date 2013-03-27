@@ -176,6 +176,8 @@ SP_TRACK_OFFLINE_DONE_EXPIRED = 5
 SP_TRACK_OFFLINE_LIMIT_EXCEEDED = 6
 SP_TRACK_OFFLINE_DONE_RESYNC = 7
 
+sp_image_size = _ctypes.c_int
+
 SP_IMAGE_SIZE_NORMAL = 0
 SP_IMAGE_SIZE_SMALL = 1
 SP_IMAGE_SIZE_LARGE = 2
@@ -847,3 +849,77 @@ _sp_track_release.restype = sp_error
 @returns_sp_error
 def sp_track_release(track):
     return _sp_track_release(track)
+
+### Album subsystem
+
+sp_albumtype = _ctypes.c_int
+
+SP_ALBUMTYPE_ALBUM          = 0
+SP_ALBUMTYPE_SINGLE         = 1
+SP_ALBUMTYPE_COMPILATION    = 2
+SP_ALBUMTYPE_UNKNOWN        = 3
+
+_sp_album_is_loaded = _libspotify.sp_album_is_loaded
+_sp_album_is_loaded.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_album_is_loaded.restype = sp_bool
+
+def sp_album_is_loaded(album):
+    return (_sp_album_is_loaded(album) != 0)
+
+_sp_album_is_available = _libspotify.sp_album_is_available
+_sp_album_is_available.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_album_is_available.restype = sp_bool
+
+def sp_album_is_available(album):
+    return (_sp_album_is_available(album) != 0)
+
+_sp_album_artist = _libspotify.sp_album_artist
+_sp_album_artist.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_album_artist.restype = _ctypes.POINTER(sp_artist)
+
+def sp_album_artist(album):
+    return _sp_album_artist(album)
+
+_sp_album_cover = _libspotify.sp_album_cover
+_sp_album_cover.argtypes = [_ctypes.POINTER(sp_album), sp_image_size]
+_sp_album_cover.restype = _ctypes.POINTER(_ctypes.c_ubyte)
+
+def sp_album_cover(album):
+    return _sp_album_cover(album)
+
+_sp_album_name = _libspotify.sp_album_name
+_sp_album_name.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_album_name.restype = _ctypes.c_char_p
+
+def sp_album_name(album):
+    return _sp_album_name(album).decode('utf-8')
+
+_sp_album_year = _libspotify.sp_album_year
+_sp_album_year.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_album_year.restype = _ctypes.c_int
+
+def sp_album_year(album):
+    return _sp_album_year(album)
+
+_sp_album_type = _libspotify.sp_album_type
+_sp_album_type.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_album_type.restype = sp_albumtype
+
+def sp_album_type(album):
+    return _sp_album_type(album)
+
+_sp_album_add_ref = _libspotify.sp_album_add_ref
+_sp_album_add_ref.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_album_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_album_add_ref(album):
+    return _sp_album_add_ref(album)
+
+_sp_album_release = _libspotify.sp_album_release
+_sp_album_release.argtypes = [_ctypes.POINTER(sp_album)]
+_sp_album_release.restype = sp_error
+
+@returns_sp_error
+def sp_album_release(album):
+    return _sp_album_release(album)
