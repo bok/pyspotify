@@ -160,6 +160,8 @@ SP_PLAYLIST_OFFLINE_STATUS_YES = 1
 SP_PLAYLIST_OFFLINE_STATUS_DOWNLOADING = 2
 SP_PLAYLIST_OFFLINE_STATUS_WAITING = 3
 
+sp_track_availability = _ctypes.c_int
+
 SP_TRACK_AVAILABILITY_UNAVAILABLE = 0
 SP_TRACK_AVAILABILITY_AVAILABLE = 1
 SP_TRACK_AVAILABILITY_NOT_STREAMABLE = 2
@@ -694,3 +696,154 @@ def sp_session_user_country(session):
     code = _sp_session_user_country(session)
     return  '{0}{1}'.format( chr((code & 0xFF00) >> 8),
                              chr(code & 0x00FF)        )
+
+### Track subsystem
+
+_sp_track_is_loaded = _libspotify.sp_track_is_loaded
+_sp_track_is_loaded.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_is_loaded.restype = sp_bool
+
+def sp_track_is_loaded(track):
+    return (_sp_track_is_loaded(track) != 0)
+
+_sp_track_error = _libspotify.sp_track_error
+_sp_track_error.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_error.restype = sp_error
+
+def sp_track_error(track):
+    return _sp_track_error(track)
+
+_sp_track_get_availability = _libspotify.sp_track_get_availability
+_sp_track_get_availability.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_track)]
+_sp_track_get_availability.restype = sp_track_availability
+
+def sp_track_get_availability(session, track):
+    return _sp_track_get_availability(session, track)
+
+_sp_track_is_local = _libspotify.sp_track_is_local
+_sp_track_is_local.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_track)]
+_sp_track_is_local.restype = sp_bool
+
+def sp_track_is_local(session, track):
+    return (_sp_track_is_local(session, track) != 0)
+
+_sp_track_is_autolinked = _libspotify.sp_track_is_autolinked
+_sp_track_is_autolinked.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_track)]
+_sp_track_is_autolinked.restype = sp_bool
+
+def sp_track_is_autolinked(session, track):
+    return (_sp_track_is_autolinked(session, track) != 0)
+
+_sp_track_get_playable = _libspotify.sp_track_get_playable
+_sp_track_get_playable.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_track)]
+_sp_track_get_playable.restype = _ctypes.POINTER(sp_track)
+
+def sp_track_get_playable(session, track):
+    return _sp_track_get_playable(session, track)
+
+_sp_track_is_placeholder = _libspotify.sp_track_is_placeholder
+_sp_track_is_placeholder.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_is_placeholder.restype = sp_bool
+
+def sp_track_is_placeholder(track):
+    return (_sp_track_is_placeholder(track) != 0)
+
+_sp_track_is_starred = _libspotify.sp_track_is_starred
+_sp_track_is_starred.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_track)]
+_sp_track_is_starred.restype = sp_bool
+
+def sp_track_is_starred(session, track):
+    return (_sp_track_is_starred(session, track) != 0)
+
+_sp_track_set_starred = _libspotify.sp_track_set_starred
+_sp_track_set_starred.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(_ctypes.POINTER(sp_track)),
+                                 _ctypes.c_int, sp_bool]
+_sp_track_set_starred.restype = sp_error
+
+@returns_sp_error
+def sp_track_set_starred(session, tracks, star):
+    if star:
+        c_star = 1
+    else:
+        c_star = 0
+    tracks_array = (sp_track * len(tracks))(*tracks)
+    return _sp_track_set_starred(session, tracks_array, len(tracks_array), c_star)
+
+_sp_track_num_artists = _libspotify.sp_track_num_artists
+_sp_track_num_artists.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_num_artists.restype = _ctypes.c_int
+
+def sp_track_num_artists(track):
+    return _sp_track_num_artists(track)
+
+_sp_track_artist = _libspotify.sp_track_artist
+_sp_track_artist.argtypes = [_ctypes.POINTER(sp_track), _ctypes.c_int]
+_sp_track_artist.restype = _ctypes.POINTER(sp_artist)
+
+def sp_track_artist(track, index):
+    return _sp_track_artist(track, index)
+
+_sp_track_album = _libspotify.sp_track_album
+_sp_track_album.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_album.restype = _ctypes.POINTER(sp_album)
+
+def sp_track_album(track):
+    return _sp_track_album(track)
+
+_sp_track_name = _libspotify.sp_track_name
+_sp_track_name.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_name.restype = _ctypes.c_char_p
+
+def sp_track_name(track):
+    return _sp_track_name(track).decode('utf-8')
+
+_sp_track_duration = _libspotify.sp_track_duration
+_sp_track_duration.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_duration.restype = _ctypes.c_int
+
+def sp_track_duration(track):
+    return _sp_track_duration(track)
+
+_sp_track_popularity = _libspotify.sp_track_popularity
+_sp_track_popularity.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_popularity.restype = _ctypes.c_int
+
+def sp_track_popularity(track):
+    return _sp_track_popularity(track)
+
+_sp_track_disc = _libspotify.sp_track_disc
+_sp_track_disc.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_disc.restype = _ctypes.c_int
+
+def sp_track_disc(track):
+    return _sp_track_disc(track)
+
+_sp_track_index = _libspotify.sp_track_index
+_sp_track_index.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_index.restype = _ctypes.c_int
+
+def sp_track_index(track):
+    return _sp_track_index(track)
+
+_sp_localtrack_create = _libspotify.sp_localtrack_create
+_sp_localtrack_create.argtypes = [_ctypes.c_char_p, _ctypes.c_char_p, _ctypes.c_char_p, _ctypes.c_int]
+_sp_localtrack_create.restype = _ctypes.POINTER(sp_track)
+
+def sp_localtrack_create(artist, title, album, length):
+    return _sp_localtrack_create(artist, title, album, length)
+
+_sp_track_add_ref = _libspotify.sp_track_add_ref
+_sp_track_add_ref.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_track_add_ref(track):
+    return _sp_track_add_ref(track)
+
+_sp_track_release = _libspotify.sp_track_release
+_sp_track_release.argtypes = [_ctypes.POINTER(sp_track)]
+_sp_track_release.restype = sp_error
+
+@returns_sp_error
+def sp_track_release(track):
+    return _sp_track_release(track)
