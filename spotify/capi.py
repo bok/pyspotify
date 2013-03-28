@@ -210,6 +210,8 @@ SP_CONNECTION_RULE_NETWORK_IF_ROAMING = 0x2
 SP_CONNECTION_RULE_ALLOW_SYNC_OVER_MOBILE = 0x4
 SP_CONNECTION_RULE_ALLOW_SYNC_OVER_WIFI = 0x8
 
+sp_artistbrowse_type = _ctypes.c_int
+
 SP_ARTISTBROWSE_FULL = 0
 SP_ARTISTBROWSE_NO_TRACKS = 1
 SP_ARTISTBROWSE_NO_ALBUMS = 2
@@ -923,3 +925,268 @@ _sp_album_release.restype = sp_error
 @returns_sp_error
 def sp_album_release(album):
     return _sp_album_release(album)
+
+### Artist subsystem
+
+_sp_artist_name = _libspotify.sp_artist_name
+_sp_artist_name.argtypes = [_ctypes.POINTER(sp_artist)]
+_sp_artist_name.restype = _ctypes.c_char_p
+
+def sp_artist_name(artist):
+    return _sp_artist_name(artist).decode('utf-8')
+
+_sp_artist_is_loaded = _libspotify.sp_artist_is_loaded
+_sp_artist_is_loaded.argtypes = [_ctypes.POINTER(sp_artist)]
+_sp_artist_is_loaded.restype = sp_bool
+
+def sp_artist_is_loaded(artist):
+    return (_sp_artist_is_loaded(artist) != 0)
+
+_sp_artist_portrait = _libspotify.sp_artist_portrait
+_sp_artist_portrait.argtypes = [_ctypes.POINTER(sp_artist), sp_image_size]
+_sp_artist_portrait.restype = _ctypes.POINTER(_ctypes.c_ubyte)
+
+def sp_artist_portrait(artist):
+    return _sp_artist_portrait(artist)
+
+_sp_artist_add_ref = _libspotify.sp_artist_add_ref
+_sp_artist_add_ref.argtypes = [_ctypes.POINTER(sp_artist)]
+_sp_artist_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_artist_add_ref(artist):
+    return _sp_artist_add_ref(artist)
+
+_sp_artist_release = _libspotify.sp_artist_release
+_sp_artist_release.argtypes = [_ctypes.POINTER(sp_artist)]
+_sp_artist_release.restype = sp_error
+
+@returns_sp_error
+def sp_artist_release(artist):
+    return _sp_artist_release(artist)
+
+### Album browsing
+
+SP_ALBUMBROWSE_COMPLETE_FUNC = _ctypes.CFUNCTYPE(None,
+    _ctypes.POINTER(sp_albumbrowse), _ctypes.py_object)
+
+_sp_albumbrowse_create = _libspotify.sp_albumbrowse_create
+_sp_albumbrowse_create.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_album),
+                                   _ctypes.POINTER(SP_ALBUMBROWSE_COMPLETE_FUNC), _ctypes.py_object]
+_sp_albumbrowse_create.restype = _ctypes.POINTER(sp_albumbrowse)
+
+def sp_albumbrowse_create(albumbrowse):
+    return _sp_albumbrowse_create(albumbrowse)
+
+_sp_albumbrowse_is_loaded = _libspotify.sp_albumbrowse_is_loaded
+_sp_albumbrowse_is_loaded.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_is_loaded.restype = sp_bool
+
+def sp_albumbrowse_is_loaded(albumbrowse):
+    return (_sp_albumbrowse_is_loaded(albumbrowse) != 0)
+
+_sp_albumbrowse_error = _libspotify.sp_albumbrowse_error
+_sp_albumbrowse_error.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_error.restype = sp_error
+
+def sp_albumbrowse_error(albumbrowse):
+    return _sp_albumbrowse_error(albumbrowse)
+
+_sp_albumbrowse_album = _libspotify.sp_albumbrowse_album
+_sp_albumbrowse_album.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_album.restype = _ctypes.POINTER(sp_album)
+
+def sp_albumbrowse_album(albumbrowse):
+    return _sp_albumbrowse_album(albumbrowse)
+
+_sp_albumbrowse_artist = _libspotify.sp_albumbrowse_artist
+_sp_albumbrowse_artist.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_artist.restype = _ctypes.POINTER(sp_artist)
+
+def sp_albumbrowse_artist(albumbrowse):
+    return _sp_albumbrowse_artist(albumbrowse)
+
+_sp_albumbrowse_num_copyrights = _libspotify.sp_albumbrowse_num_copyrights
+_sp_albumbrowse_num_copyrights.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_num_copyrights.restype = _ctypes.c_int
+
+def sp_albumbrowse_num_copyrights(albumbrowse):
+    return _sp_albumbrowse_num_copyrights(albumbrowse)
+
+_sp_albumbrowse_copyright = _libspotify.sp_albumbrowse_copyright
+_sp_albumbrowse_copyright.argtypes = [_ctypes.POINTER(sp_albumbrowse), _ctypes.c_int]
+_sp_albumbrowse_copyright.restype = _ctypes.c_char_p
+
+def sp_albumbrowse_copyright(albumbrowse, index):
+    return _sp_albumbrowse_copyright(albumbrowse, index)
+
+_sp_albumbrowse_num_tracks = _libspotify.sp_albumbrowse_num_tracks
+_sp_albumbrowse_num_tracks.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_num_tracks.restype = _ctypes.c_int
+
+def sp_albumbrowse_num_tracks(albumbrowse):
+    return _sp_albumbrowse_num_tracks(albumbrowse)
+
+_sp_albumbrowse_track = _libspotify.sp_albumbrowse_track
+_sp_albumbrowse_track.argtypes = [_ctypes.POINTER(sp_albumbrowse), _ctypes.c_int]
+_sp_albumbrowse_track.restype = _ctypes.POINTER(sp_track)
+
+def sp_albumbrowse_track(albumbrowse, index):
+    return _sp_albumbrowse_track(albumbrowse, index)
+
+_sp_albumbrowse_review = _libspotify.sp_albumbrowse_review
+_sp_albumbrowse_review.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_review.restype = _ctypes.c_char_p
+
+def sp_albumbrowse_review(albumbrowse):
+    return _sp_albumbrowse_review(albumbrowse)
+
+_sp_albumbrowse_backend_request_duration = _libspotify.sp_albumbrowse_backend_request_duration
+_sp_albumbrowse_backend_request_duration.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_backend_request_duration.restype = _ctypes.c_int
+
+def sp_albumbrowse_backend_request_duration(albumbrowse):
+    return _sp_albumbrowse_backend_request_duration(albumbrowse)
+
+@returns_sp_error
+def sp_albumbrowse_add_ref(albumbrowse):
+    return _sp_albumbrowse_add_ref(albumbrowse)
+
+_sp_albumbrowse_release = _libspotify.sp_albumbrowse_release
+_sp_albumbrowse_release.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_release.restype = sp_error
+
+@returns_sp_error
+def sp_albumbrowse_release(albumbrowse):
+    return _sp_albumbrowse_release(albumbrowse)
+
+### Artist browsing
+
+SP_ARTISTBROWSE_COMPLETE_FUNC = _ctypes.CFUNCTYPE(None,
+    _ctypes.POINTER(sp_artistbrowse), _ctypes.py_object)
+
+_sp_artistbrowse_create = _libspotify.sp_artistbrowse_create
+_sp_artistbrowse_create.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(sp_artist),
+                                    sp_artistbrowse_type, _ctypes.POINTER(SP_ARTISTBROWSE_COMPLETE_FUNC),
+                                    _ctypes.py_object]
+_sp_artistbrowse_create.restype = _ctypes.POINTER(sp_artistbrowse)
+
+def sp_artistbrowse_create(artistbrowse):
+    return _sp_artistbrowse_create(artistbrowse)
+
+_sp_artistbrowse_is_loaded = _libspotify.sp_artistbrowse_is_loaded
+_sp_artistbrowse_is_loaded.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_is_loaded.restype = sp_bool
+
+def sp_artistbrowse_is_loaded(artistbrowse):
+    return (_sp_artistbrowse_is_loaded(artistbrowse) != 0)
+
+_sp_artistbrowse_error = _libspotify.sp_artistbrowse_error
+_sp_artistbrowse_error.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_error.restype = sp_error
+
+def sp_artistbrowse_error(artistbrowse):
+    return _sp_artistbrowse_error(artistbrowse)
+
+_sp_artistbrowse_artist = _libspotify.sp_artistbrowse_artist
+_sp_artistbrowse_artist.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_artist.restype = _ctypes.POINTER(sp_artist)
+
+def sp_artistbrowse_artist(artistbrowse):
+    return _sp_artistbrowse_artist(artistbrowse)
+
+_sp_artistbrowse_num_portraits = _libspotify.sp_artistbrowse_num_portraits
+_sp_artistbrowse_num_portraits.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_num_portraits.restype = _ctypes.c_int
+
+def sp_artistbrowse_num_portraits(artistbrowse):
+    return _sp_artistbrowse_num_portraits(artistbrowse)
+
+_sp_artistbrowse_portrait = _libspotify.sp_artistbrowse_portrait
+_sp_artistbrowse_portrait.argtypes = [_ctypes.POINTER(sp_artistbrowse), _ctypes.c_int]
+_sp_artistbrowse_portrait.restype = _ctypes.POINTER(_ctypes.c_ubyte)
+
+def sp_artistbrowse_portrait(artistbrowse, index):
+    return _sp_artistbrowse_portrait(artistbrowse, index)
+
+_sp_artistbrowse_num_tracks = _libspotify.sp_artistbrowse_num_tracks
+_sp_artistbrowse_num_tracks.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_num_tracks.restype = _ctypes.c_int
+
+def sp_artistbrowse_num_tracks(artistbrowse):
+    return _sp_artistbrowse_num_tracks(artistbrowse)
+
+_sp_artistbrowse_track = _libspotify.sp_artistbrowse_track
+_sp_artistbrowse_track.argtypes = [_ctypes.POINTER(sp_artistbrowse), _ctypes.c_int]
+_sp_artistbrowse_track.restype = _ctypes.POINTER(sp_track)
+
+def sp_artistbrowse_track(artistbrowse, index):
+    return _sp_artistbrowse_track(artistbrowse, index)
+
+_sp_artistbrowse_num_tophit_tracks = _libspotify.sp_artistbrowse_num_tophit_tracks
+_sp_artistbrowse_num_tophit_tracks.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_num_tophit_tracks.restype = _ctypes.c_int
+
+def sp_artistbrowse_num_tophit_tracks(artistbrowse):
+    return _sp_artistbrowse_num_tophit_tracks(artistbrowse)
+
+_sp_artistbrowse_tophit_track = _libspotify.sp_artistbrowse_tophit_track
+_sp_artistbrowse_tophit_track.argtypes = [_ctypes.POINTER(sp_artistbrowse), _ctypes.c_int]
+_sp_artistbrowse_tophit_track.restype = _ctypes.POINTER(sp_track)
+
+def sp_artistbrowse_tophit_track(artistbrowse, index):
+    return _sp_artistbrowse_tophit_track(artistbrowse, index)
+
+_sp_artistbrowse_num_albums = _libspotify.sp_artistbrowse_num_albums
+_sp_artistbrowse_num_albums.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_num_albums.restype = _ctypes.c_int
+
+def sp_artistbrowse_num_albums(artistbrowse):
+    return _sp_artistbrowse_num_albums(artistbrowse)
+
+_sp_artistbrowse_album = _libspotify.sp_artistbrowse_album
+_sp_artistbrowse_album.argtypes = [_ctypes.POINTER(sp_artistbrowse), _ctypes.c_int]
+_sp_artistbrowse_album.restype = _ctypes.POINTER(sp_album)
+
+def sp_artistbrowse_album(artistbrowse, index):
+    return _sp_artistbrowse_album(artistbrowse, index)
+
+_sp_artistbrowse_num_similar_artists = _libspotify.sp_artistbrowse_num_similar_artists
+_sp_artistbrowse_num_similar_artists.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_num_similar_artists.restype = _ctypes.c_int
+
+def sp_artistbrowse_num_similar_artists(artistbrowse):
+    return _sp_artistbrowse_num_similar_artists(artistbrowse)
+
+_sp_artistbrowse_similar_artist = _libspotify.sp_artistbrowse_similar_artist
+_sp_artistbrowse_similar_artist.argtypes = [_ctypes.POINTER(sp_artistbrowse), _ctypes.c_int]
+_sp_artistbrowse_similar_artist.restype = _ctypes.POINTER(sp_artist)
+
+def sp_artistbrowse_similar_artist(artistbrowse, index):
+    return _sp_artistbrowse_similar_artist(artistbrowse, index)
+
+_sp_artistbrowse_biography = _libspotify.sp_artistbrowse_biography
+_sp_artistbrowse_biography.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_biography.restype = _ctypes.c_char_p
+
+def sp_artistbrowse_biography(artistbrowse):
+    return _sp_artistbrowse_biography(artistbrowse)
+
+_sp_artistbrowse_backend_request_duration = _libspotify.sp_artistbrowse_backend_request_duration
+_sp_artistbrowse_backend_request_duration.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_backend_request_duration.restype = _ctypes.c_int
+
+def sp_artistbrowse_backend_request_duration(artistbrowse):
+    return _sp_artistbrowse_backend_request_duration(artistbrowse)
+
+@returns_sp_error
+def sp_artistbrowse_add_ref(artistbrowse):
+    return _sp_artistbrowse_add_ref(artistbrowse)
+
+_sp_artistbrowse_release = _libspotify.sp_artistbrowse_release
+_sp_artistbrowse_release.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_release.restype = sp_error
+
+@returns_sp_error
+def sp_artistbrowse_release(artistbrowse):
+    return _sp_artistbrowse_release(artistbrowse)
