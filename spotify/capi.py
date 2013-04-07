@@ -1138,8 +1138,9 @@ _sp_albumbrowse_create.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER(
                                    _ctypes.POINTER(SP_ALBUMBROWSE_COMPLETE_FUNC), _ctypes.py_object]
 _sp_albumbrowse_create.restype = _ctypes.POINTER(sp_albumbrowse)
 
-def sp_albumbrowse_create(albumbrowse):
-    return _sp_albumbrowse_create(albumbrowse)
+def sp_albumbrowse_create(albumbrowse, album, callback, userdata):
+    return _sp_albumbrowse_create(albumbrowse, album,
+            SP_ALBUMBROWSE_COMPLETE_FUNC(callback), userdata)
 
 _sp_albumbrowse_is_loaded = _libspotify.sp_albumbrowse_is_loaded
 _sp_albumbrowse_is_loaded.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
@@ -1234,8 +1235,9 @@ _sp_artistbrowse_create.argtypes = [_ctypes.POINTER(sp_session), _ctypes.POINTER
                                     _ctypes.py_object]
 _sp_artistbrowse_create.restype = _ctypes.POINTER(sp_artistbrowse)
 
-def sp_artistbrowse_create(artistbrowse):
-    return _sp_artistbrowse_create(artistbrowse)
+def sp_artistbrowse_create(artistbrowse, artist, ab_type, callback, userdata):
+    return _sp_artistbrowse_create(artistbrowse, artist, ab_type,
+            SP_ARTISTBROWSE_COMPLETE_FUNC(callback), userdata)
 
 _sp_artistbrowse_is_loaded = _libspotify.sp_artistbrowse_is_loaded
 _sp_artistbrowse_is_loaded.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
