@@ -1,5 +1,6 @@
 import ctypes
 import unittest
+import sys
 
 from spotify import capi
 
@@ -42,7 +43,10 @@ class CAPIErrorTest(unittest.TestCase):
     def test_sp_error_message_returns_error_message_as_unicode(self):
         msg = capi.sp_error_message(capi.SP_ERROR_OK)
         self.assertEqual(msg, u'sp_error: 0')
-        self.assertIsInstance(msg, unicode)
+        if sys.version_info[0] < 3:
+            self.assertIsInstance(msg, unicode)
+        else:
+            self.assertIsInstance(msg, str)
 
     def test_sp_error_message_returns_error_message_for_unknown_error_no(self):
         msg = capi.sp_error_message(999)
@@ -53,4 +57,4 @@ class CAPIErrorTest(unittest.TestCase):
 
     def test_SpError_exc_looks_up_error_message_given_error_code(self):
         exc = capi.SpError(5)
-        self.assertEqual(exc.message, 'sp_error: 5 (error 5)')
+        self.assertEqual(exc.args, ('sp_error: 5 (error 5)',))

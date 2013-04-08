@@ -67,11 +67,11 @@ class CAPISessionEnumAndStructTest(unittest.TestCase):
         self.assertEqual(stats.stutter, 0)
 
     def test_sp_subscribers_struct_can_be_created_and_read_from(self):
-        users = ['foo', 'bar', 'baz']
+        users = [s.encode('utf-8') for s in ['foo', 'bar', 'baz']]
         subscribers = capi.sp_subscribers(count=len(users),
             subscribers=(ctypes.c_char_p * len(users))(*users))
         self.assertEqual(subscribers.count, 3)
-        self.assertItemsEqual(subscribers.subscribers, ['foo', 'bar', 'baz'])
+        self.assertSequenceEqual(subscribers.subscribers[0:3], users)
 
     def test_sp_connection_type_enum_has_correct_enumeration(self):
         self.assertEqual(capi.SP_CONNECTION_TYPE_UNKNOWN, 0)
@@ -154,7 +154,7 @@ class CAPISessionCallbackTest(unittest.TestCase):
     def test_SP_SESSION_MESSAGE_TO_USER_FUNC_can_wrap_callback(self):
         callback = capi.SP_SESSION_MESSAGE_TO_USER_FUNC(
             lambda session, message: None)
-        self.assertEqual(callback(None, 'msg'), None)
+        self.assertEqual(callback(None, 'msg'.encode('utf-8')), None)
 
     def test_SP_SESSION_NOTIFY_MAIN_THREAD_FUNC_can_wrap_callback(self):
         callback = capi.SP_SESSION_NOTIFY_MAIN_THREAD_FUNC(lambda session: None)
@@ -171,7 +171,7 @@ class CAPISessionCallbackTest(unittest.TestCase):
 
     def test_SP_SESSION_LOG_MESSAGE_FUNC_can_wrap_callback(self):
         callback = capi.SP_SESSION_LOG_MESSAGE_FUNC(lambda session, data: None)
-        self.assertEqual(callback(None, 'msg'), None)
+        self.assertEqual(callback(None, 'msg'.encode('utf-8')), None)
 
     def test_SP_SESSION_END_OF_TRACK_FUNC_can_wrap_callback(self):
         callback = capi.SP_SESSION_END_OF_TRACK_FUNC(lambda session: None)
@@ -246,11 +246,11 @@ class CAPISessionCallbackTest(unittest.TestCase):
         self.assertEqual(callbacks.logged_out(None), None)
         self.assertEqual(callbacks.metadata_updated(None), None)
         self.assertEqual(callbacks.connection_error(None, 0), None)
-        self.assertEqual(callbacks.message_to_user(None, 'msg'), None)
+        self.assertEqual(callbacks.message_to_user(None, 'msg'.encode('utf-8')), None)
         self.assertEqual(callbacks.notify_main_thread(None), None)
         self.assertEqual(callbacks.music_delivery(None, None, None, 0), 7)
         self.assertEqual(callbacks.play_token_lost(None), None)
-        self.assertEqual(callbacks.log_message(None, 'msg'), None)
+        self.assertEqual(callbacks.log_message(None, 'msg'.encode('utf-8')), None)
         self.assertEqual(callbacks.end_of_track(None), None)
         self.assertEqual(callbacks.streaming_error(None, 0), None)
         self.assertEqual(callbacks.userinfo_updated(None), None)
@@ -301,31 +301,31 @@ class CAPISessionConfigTest(unittest.TestCase):
     def test_sp_session_config_can_be_created_and_read_from(self):
         callbacks = capi.sp_session_callbacks()
         config = capi.sp_session_config(
-            api_version=10,
-            cache_location='foo',
-            settings_location='bar',
+            api_version=12,
+            cache_location='foo'.encode('utf-8'),
+            settings_location='bar'.encode('utf-8'),
             application_key=None,
             application_key_size=0,
-            user_agent='baz',
+            user_agent='baz'.encode('utf-8'),
             callbacks=ctypes.pointer(callbacks),
             compress_playlists=True,
             dont_save_metadata_for_playlists=True,
             initially_unload_playlists=True,
-            device_id='qux',
-            tracefile='quux',
+            device_id='qux'.encode('utf-8'),
+            tracefile='quux'.encode('utf-8'),
         )
-        self.assertEqual(config.api_version, 10)
-        self.assertEqual(config.cache_location, 'foo')
-        self.assertEqual(config.settings_location, 'bar')
+        self.assertEqual(config.api_version, 12)
+        self.assertEqual(config.cache_location, 'foo'.encode('utf-8'))
+        self.assertEqual(config.settings_location, 'bar'.encode('utf-8'))
         self.assertEqual(config.application_key, None)
         self.assertEqual(config.application_key_size, 0)
-        self.assertEqual(config.user_agent, 'baz')
+        self.assertEqual(config.user_agent, 'baz'.encode('utf-8'))
         self.assertEqual(type(config.callbacks[0]), type(callbacks))
         self.assertEqual(config.compress_playlists, True)
         self.assertEqual(config.dont_save_metadata_for_playlists, True)
         self.assertEqual(config.initially_unload_playlists, True)
-        self.assertEqual(config.device_id, 'qux')
-        self.assertEqual(config.tracefile, 'quux')
+        self.assertEqual(config.device_id, 'qux'.encode('utf-8'))
+        self.assertEqual(config.tracefile, 'quux'.encode('utf-8'))
 
     def test_sp_session_config_raises_exc_on_wrong_arg_types(self):
         self.assertRaises(TypeError, capi.sp_session_config,
