@@ -109,6 +109,7 @@ class SpError(Exception):
     def __init__(self, sp_error):
         super(SpError, self).__init__('%s (error %d)' % (
             sp_error_message(sp_error), sp_error))
+        self.code = sp_error
 
 # Decorator for API function returning sp_error: we return None and raise SpError if
 # the return value is != SP_ERROR_OK
