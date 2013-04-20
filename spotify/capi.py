@@ -5,7 +5,7 @@ from functools import wraps
 SPOTIFY_API_VERSION = 12
 
 if _os.environ.get('USE_LIBMOCKSPOTIFY'):
-    _libspotify = _ctypes.CDLL('libmockspotify.so.1')
+    _libspotify = _ctypes.CDLL('libmockspotify.so.%s' % SPOTIFY_API_VERSION)
 else:
     _libspotify = _ctypes.CDLL('libspotify.so.%s' % SPOTIFY_API_VERSION)
 
