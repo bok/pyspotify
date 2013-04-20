@@ -384,7 +384,8 @@ _sp_session_login.restype = sp_error
 @returns_sp_error
 def sp_session_login(session, username, password,
         remember_me=False, blob=None):
-    return _sp_session_login(session, username, password, remember_me, blob)
+    return _sp_session_login(session, username.encode('utf-8'),
+            password.encode('utf-8'), remember_me, blob)
 
 _sp_session_relogin = _libspotify.sp_session_relogin
 _sp_session_relogin.argtypes = [_ctypes.POINTER(sp_session)]
@@ -407,7 +408,8 @@ def sp_session_remembered_user(session):
         return None # No user stored
 
     buf = (_ctypes.c_char * (name_len + 1))()
-    return _sp_session_remembered_user(session, buf, name_len + 1).decode('utf-8')
+    _sp_session_remembered_user(session, buf, name_len + 1)
+    return buf.value.decode('utf-8')
 
 _sp_session_user_name = _libspotify.sp_session_user_name
 _sp_session_user_name.argtypes = [_ctypes.POINTER(sp_session)]
@@ -426,7 +428,7 @@ def sp_session_forget_me(session):
 
 _sp_session_user = _libspotify.sp_session_user
 _sp_session_user.argtypes = [_ctypes.POINTER(sp_session)]
-_sp_session_user.restype = sp_user
+_sp_session_user.restype = _ctypes.POINTER(sp_user)
 
 def sp_session_user(session):
     return _sp_session_user(session)
@@ -622,7 +624,7 @@ def sp_session_is_scrobbling(session, provider):
     error = _sp_session_is_scrobbling(session, provider, _ctypes.byref(state))
     if error != SP_ERROR_OK:
         raise SpError(error)
-    return state
+    return state.value
 
 _sp_session_is_scrobbling_possible = _libspotify.sp_session_is_scrobbling_possible
 _sp_session_is_scrobbling_possible.argtypes = [_ctypes.POINTER(sp_session), sp_social_provider,
@@ -631,10 +633,10 @@ _sp_session_is_scrobbling_possible.restype = sp_error
 
 def sp_session_is_scrobbling_possible(session, provider):
     out = sp_bool()
-    error = _sp_session_is_scrobbling(session, provider, _ctypes.byref(out))
+    error = _sp_session_is_scrobbling_possible(session, provider, _ctypes.byref(out))
     if error != SP_ERROR_OK:
         raise SpError(error)
-    return out
+    return (out.value != 0)
 
 _sp_session_set_social_credentials = _libspotify.sp_session_set_social_credentials
 _sp_session_set_social_credentials.argtypes = [_ctypes.POINTER(sp_session), sp_social_provider,
@@ -642,9 +644,9 @@ _sp_session_set_social_credentials.argtypes = [_ctypes.POINTER(sp_session), sp_s
 _sp_session_set_social_credentials.restype = sp_error
 
 @returns_sp_error
-def sp_session_set_social_credentials(session, username, password):
-    return _sp_session_set_social_credentials(session, username.encode('utf-8'),
-                                                       password.encode('utf-8'))
+def sp_session_set_social_credentials(session, provider, username, password):
+    return _sp_session_set_social_credentials(session, provider,
+            username.encode('utf-8'), password.encode('utf-8'))
 
 _sp_session_set_connection_type = _libspotify.sp_session_set_connection_type
 _sp_session_set_connection_type.argtypes = [_ctypes.POINTER(sp_session), sp_connection_type]
@@ -679,7 +681,7 @@ def sp_offline_num_playlists(session):
 _sp_offline_sync_get_status = _libspotify.sp_offline_sync_get_status
 _sp_offline_sync_get_status.argtypes = [_ctypes.POINTER(sp_session),
                                         _ctypes.POINTER(sp_offline_sync_status)]
-_sp_offline_sync_get_status.restype = sp_offline_sync_status
+_sp_offline_sync_get_status.restype = sp_bool
 
 def sp_offline_sync_get_status(session):
     status = sp_offline_sync_status()
@@ -802,8 +804,10 @@ def sp_link_as_string(link):
     # First, we attempt to get the URI length
     buf = (_ctypes.c_char * 1)()
     link_len = _sp_link_as_string(link, buf, 1)
+
     buf = (_ctypes.c_char * (name_len + 1))()
-    return _sp_link_as_string(link, buf, link_len + 1).decode('utf-8')
+    _sp_link_as_string(link, buf, link_len + 1)
+    return buf.decode('utf-8')
 
 _sp_link_type = _libspotify.sp_link_type
 _sp_link_type.argtypes = [_ctypes.POINTER(sp_link)]
