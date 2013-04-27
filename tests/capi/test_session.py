@@ -3,7 +3,6 @@ import threading
 import unittest
 
 from spotify import capi, mock
-from spotify.mock import capi as mockapi
 
 class CAPISessionEnumAndStructTest(unittest.TestCase):
     def test_sp_connectionstate_enum_has_correct_enumeration(self):

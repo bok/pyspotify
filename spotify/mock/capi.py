@@ -35,3 +35,20 @@ _mocksp_session_destroy.restype = None
 
 def mocksp_session_destroy(session):
     _mocksp_session_destroy(session)
+
+### Artist
+
+_mocksp_artist_create = _libmockspotify.mocksp_artist_create
+_mocksp_artist_create.argtypes = [_ctypes.c_char_p,
+        _ctypes.POINTER(_ctypes.c_ubyte), sp_bool]
+_mocksp_artist_create.restype = _ctypes.POINTER(sp_artist)
+
+def mocksp_artist_create(name='', portrait=None, is_loaded=False):
+    return _mocksp_artist_create(name.encode('utf-8'), portrait, is_loaded)
+
+_mocksp_artist_destroy = _libmockspotify.mocksp_artist_destroy
+_mocksp_artist_destroy.argtypes = [_ctypes.POINTER(sp_artist)]
+_mocksp_artist_destroy.restype = None
+
+def mocksp_artist_destroy(artist):
+    _mocksp_artist_destroy(artist)
