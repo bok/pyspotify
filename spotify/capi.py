@@ -153,6 +153,8 @@ SP_PLAYLIST_TYPE_START_FOLDER = 1
 SP_PLAYLIST_TYPE_END_FOLDER = 2
 SP_PLAYLIST_TYPE_PLACEHOLDER = 3
 
+sp_search_type = _ctypes.c_int
+
 SP_SEARCH_STANDARD = 0
 SP_SEARCH_SUGGEST = 1
 
@@ -1460,3 +1462,172 @@ _sp_image_release.restype = sp_error
 @returns_sp_error
 def sp_image_release(image):
     return _sp_image_release(image)
+
+### Search subsystem
+
+SP_SEARCH_COMPLETE_CB_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_search), _ctypes.py_object)
+
+_sp_search_create = _libspotify.sp_search_create
+_sp_search_create.argtypes = [_ctypes.POINTER(sp_session), _ctypes.c_char_p,
+        _ctypes.c_int, _ctypes.c_int, _ctypes.c_int, _ctypes.c_int,
+        _ctypes.c_int, _ctypes.c_int, _ctypes.c_int, _ctypes.c_int,
+        sp_search_type, SP_SEARCH_COMPLETE_CB_FUNC, _ctypes.py_object]
+_sp_search_create.restype = _ctypes.POINTER(sp_search)
+
+def sp_search_create(session, query, track_offset, track_count, album_offset,
+        album_count, artist_offset, artist_count, playlist_offset,
+        playlist_count, search_type, callback, userdata):
+    return _sp_search_create(session, query.encode('utf-8'), track_offset,
+            track_count, album_offset, album_count, playlist_offset,
+            playlist_count, search_type, SP_SEARCH_COMPLETE_CB_FUNC(callback),
+            userdata)
+
+_sp_search_is_loaded = _libspotify.sp_search_is_loaded
+_sp_search_is_loaded.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_is_loaded.restype = sp_bool
+
+def sp_search_is_loaded(search):
+    return (_sp_search_is_loaded(search) != 0)
+
+_sp_search_error = _libspotify.sp_search_error
+_sp_search_error.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_error.restype = sp_error
+
+def sp_search_error(search):
+    return _sp_search_error(search)
+
+_sp_search_num_tracks = _libspotify.sp_search_num_tracks
+_sp_search_num_tracks.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_num_tracks.restype = _ctypes.c_int
+
+def sp_search_num_tracks(search):
+    return _sp_search_num_tracks(search)
+
+_sp_search_track = _libspotify.sp_search_track
+_sp_search_track.argtypes = [_ctypes.POINTER(sp_search), _ctypes.c_int]
+_sp_search_track.restype = _ctypes.POINTER(sp_track)
+
+def sp_search_track(search, index):
+    return _sp_search_track(search, index)
+
+_sp_search_num_albums = _libspotify.sp_search_num_albums
+_sp_search_num_albums.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_num_albums.restype = _ctypes.c_int
+
+def sp_search_num_albums(search):
+    return _sp_search_num_albums(search)
+
+_sp_search_album = _libspotify.sp_search_album
+_sp_search_album.argtypes = [_ctypes.POINTER(sp_search), _ctypes.c_int]
+_sp_search_album.restype = _ctypes.POINTER(sp_album)
+
+def sp_search_album(search, index):
+    return _sp_search_album(search, index)
+
+_sp_search_num_playlists = _libspotify.sp_search_num_playlists
+_sp_search_num_playlists.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_num_playlists.restype = _ctypes.c_int
+
+def sp_search_num_playlists(search):
+    return _sp_search_num_playlists(search)
+
+_sp_search_playlist = _libspotify.sp_search_playlist
+_sp_search_playlist.argtypes = [_ctypes.POINTER(sp_search), _ctypes.c_int]
+_sp_search_playlist.restype = _ctypes.POINTER(sp_playlist)
+
+def sp_search_playlist(search, index):
+    return _sp_search_playlist(search, index)
+
+_sp_search_playlist_name = _libspotify.sp_search_playlist_name
+_sp_search_playlist_name.argtypes = [_ctypes.POINTER(sp_search), _ctypes.c_int]
+_sp_search_playlist_name.restype = _ctypes.c_char_p
+
+def sp_search_playlist_name(search, index):
+    return _sp_search_playlist_name(search, index).decode('utf-8')
+
+_sp_search_playlist_uri = _libspotify.sp_search_playlist_uri
+_sp_search_playlist_uri.argtypes = [_ctypes.POINTER(sp_search), _ctypes.c_int]
+_sp_search_playlist_uri.restype = _ctypes.c_char_p
+
+def sp_search_playlist_uri(search, index):
+    return _sp_search_playlist_uri(search, index).decode('utf-8')
+
+_sp_search_playlist_image_uri = _libspotify.sp_search_playlist_image_uri
+_sp_search_playlist_image_uri.argtypes = [_ctypes.POINTER(sp_search), _ctypes.c_int]
+_sp_search_playlist_image_uri.restype = _ctypes.c_char_p
+
+def sp_search_playlist_image_uri(search, index):
+    return _sp_search_playlist_image_uri(search, index).decode('utf-8')
+
+_sp_search_num_artists = _libspotify.sp_search_num_artists
+_sp_search_num_artists.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_num_artists.restype = _ctypes.c_int
+
+def sp_search_num_artists(search):
+    return _sp_search_num_artists(search)
+
+_sp_search_artist = _libspotify.sp_search_artist
+_sp_search_artist.argtypes = [_ctypes.POINTER(sp_search), _ctypes.c_int]
+_sp_search_artist.restype = _ctypes.POINTER(sp_artist)
+
+def sp_search_artist(search, index):
+    return _sp_search_artist(search, index)
+
+_sp_search_query = _libspotify.sp_search_query
+_sp_search_query.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_query.restype = _ctypes.c_char_p
+
+def sp_search_query(search):
+    return _sp_search_query(search).decode('utf-8')
+
+_sp_search_did_you_mean = _libspotify.sp_search_did_you_mean
+_sp_search_did_you_mean.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_did_you_mean.restype = _ctypes.c_char_p
+
+def sp_search_did_you_mean(search):
+    return _sp_search_did_you_mean(search).decode('utf-8')
+
+_sp_search_total_tracks = _libspotify.sp_search_total_tracks
+_sp_search_total_tracks.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_total_tracks.restype = _ctypes.c_int
+
+def sp_search_total_tracks(search):
+    return _sp_search_total_tracks(search)
+
+_sp_search_total_albums = _libspotify.sp_search_total_albums
+_sp_search_total_albums.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_total_albums.restype = _ctypes.c_int
+
+def sp_search_total_albums(search):
+    return _sp_search_total_albums(search)
+
+_sp_search_total_artists = _libspotify.sp_search_total_artists
+_sp_search_total_artists.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_total_artists.restype = _ctypes.c_int
+
+def sp_search_total_artists(search):
+    return _sp_search_total_artists(search)
+
+_sp_search_total_playlists = _libspotify.sp_search_total_playlists
+_sp_search_total_playlists.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_total_playlists.restype = _ctypes.c_int
+
+def sp_search_total_playlists(search):
+    return _sp_search_total_playlists(search)
+
+_sp_search_add_ref = _libspotify.sp_search_add_ref
+_sp_search_add_ref.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_search_add_ref(search):
+    return _sp_search_add_ref(search)
+
+_sp_search_release = _libspotify.sp_search_release
+_sp_search_release.argtypes = [_ctypes.POINTER(sp_search)]
+_sp_search_release.restype = sp_error
+
+@returns_sp_error
+def sp_search_release(search):
+    return _sp_search_release(search)
