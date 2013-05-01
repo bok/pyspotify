@@ -1219,6 +1219,10 @@ _sp_albumbrowse_backend_request_duration.restype = _ctypes.c_int
 def sp_albumbrowse_backend_request_duration(albumbrowse):
     return _sp_albumbrowse_backend_request_duration(albumbrowse)
 
+_sp_albumbrowse_add_ref = _libspotify.sp_albumbrowse_add_ref
+_sp_albumbrowse_add_ref.argtypes = [_ctypes.POINTER(sp_albumbrowse)]
+_sp_albumbrowse_add_ref.restype = sp_error
+
 @returns_sp_error
 def sp_albumbrowse_add_ref(albumbrowse):
     return _sp_albumbrowse_add_ref(albumbrowse)
@@ -1350,6 +1354,10 @@ _sp_artistbrowse_backend_request_duration.restype = _ctypes.c_int
 
 def sp_artistbrowse_backend_request_duration(artistbrowse):
     return _sp_artistbrowse_backend_request_duration(artistbrowse)
+
+_sp_artistbrowse_add_ref = _libspotify.sp_artistbrowse_add_ref
+_sp_artistbrowse_add_ref.argtypes = [_ctypes.POINTER(sp_artistbrowse)]
+_sp_artistbrowse_add_ref.restype = sp_error
 
 @returns_sp_error
 def sp_artistbrowse_add_ref(artistbrowse):
