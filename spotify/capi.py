@@ -1370,3 +1370,93 @@ _sp_artistbrowse_release.restype = sp_error
 @returns_sp_error
 def sp_artistbrowse_release(artistbrowse):
     return _sp_artistbrowse_release(artistbrowse)
+
+# Image handling
+
+sp_image_format = _ctypes.c_int
+SP_IMAGE_FORMAT_UNKNOWN     = -1
+SP_IMAGE_FORMAT_JPEG        =  0
+
+SP_IMAGE_LOADED_CB_FUNC = _ctypes.CFUNCTYPE(None, _ctypes.POINTER(sp_image),
+                                            _ctypes.c_void_p)
+
+_sp_image_create = _libspotify.sp_image_create
+_sp_image_create.argtypes = [_ctypes.POINTER(sp_session),
+                             _ctypes.POINTER(_ctypes.c_byte)]
+_sp_image_create.restype = _ctypes.POINTER(sp_image)
+
+def sp_image_create(session, image_id):
+    return _sp_image_create(session, image_id)
+
+_sp_image_create_from_link = _libspotify.sp_image_create_from_link
+_sp_image_create_from_link.argtypes = [_ctypes.POINTER(sp_session),
+                             _ctypes.POINTER(sp_link)]
+_sp_image_create_from_link.restype = _ctypes.POINTER(sp_image)
+
+def sp_image_create_from_link(session, link):
+    return _sp_image_create_from_link(session, link)
+
+_sp_image_add_load_callback = _libspotify.sp_image_add_load_callback
+_sp_image_add_load_callback.argtypes = [_ctypes.POINTER(sp_image),
+        _ctypes.POINTER(SP_IMAGE_LOADED_CB_FUNC), _ctypes.py_object]
+_sp_image_add_load_callback.restype = sp_error
+
+@returns_sp_error
+def sp_image_add_load_callback(image, callback, userdata):
+    return _sp_image_add_load_callback(image,
+            SP_IMAGE_LOADED_CB_FUNC(callback), userdata)
+
+_sp_image_is_loaded = _libspotify.sp_image_is_loaded
+_sp_image_is_loaded.argtypes = [_ctypes.POINTER(sp_image)]
+_sp_image_is_loaded.restype = sp_bool
+
+def sp_image_is_loaded(image):
+    return (_sp_image_is_loaded(image) != 0)
+
+_sp_image_error = _libspotify.sp_image_error
+_sp_image_error.argtypes = [_ctypes.POINTER(sp_image)]
+_sp_image_error.restype = sp_error
+
+def sp_image_error(image):
+    return _sp_image_error(image)
+
+_sp_image_format = _libspotify.sp_image_format
+_sp_image_format.argtypes = [_ctypes.POINTER(sp_image)]
+_sp_image_format.restype = sp_image_format
+
+def sp_image_format(image):
+    return _sp_image_format(image)
+
+_sp_image_data = _libspotify.sp_image_data
+_sp_image_data.argtypes = [_ctypes.POINTER(sp_image), _ctypes.c_size_t]
+_sp_image_data.restype = _ctypes.c_void_p
+
+def sp_image_data(image):
+    size = _ctypes.c_size_t()
+    data = _sp_image_data(image, _ctypes.byref(size))
+    py_data = _ctypes.create_string_buffer('', size)
+    _ctypes.memmove(py_data, data, size)
+    return py_data.value
+
+_sp_image_image_id = _libspotify.sp_image_image_id
+_sp_image_image_id.argtypes = [_ctypes.POINTER(sp_image)]
+_sp_image_image_id.restype = _ctypes.POINTER(_ctypes.c_ubyte)
+
+def sp_image_image_id(image):
+    return _sp_image_image_id(image)
+
+_sp_image_add_ref = _libspotify.sp_image_add_ref
+_sp_image_add_ref.argtypes = [_ctypes.POINTER(sp_image)]
+_sp_image_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_image_add_ref(image):
+    return _sp_image_add_ref(image)
+
+_sp_image_release = _libspotify.sp_image_release
+_sp_image_release.argtypes = [_ctypes.POINTER(sp_image)]
+_sp_image_release.restype = sp_error
+
+@returns_sp_error
+def sp_image_release(image):
+    return _sp_image_release(image)
