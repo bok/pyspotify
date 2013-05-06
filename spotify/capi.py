@@ -158,6 +158,8 @@ sp_search_type = _ctypes.c_int
 SP_SEARCH_STANDARD = 0
 SP_SEARCH_SUGGEST = 1
 
+sp_playlist_offline_status = _ctypes.c_int
+
 SP_PLAYLIST_OFFLINE_STATUS_NO = 0
 SP_PLAYLIST_OFFLINE_STATUS_YES = 1
 SP_PLAYLIST_OFFLINE_STATUS_DOWNLOADING = 2
@@ -1631,3 +1633,353 @@ _sp_search_release.restype = sp_error
 @returns_sp_error
 def sp_search_release(search):
     return _sp_search_release(search)
+
+### Playlist subsystem
+
+SP_PLAYLIST_TRACKS_ADDED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist),
+        _ctypes.POINTER(_ctypes.POINTER(sp_track)), _ctypes.c_int,
+        _ctypes.c_int, _ctypes.py_object)
+
+SP_PLAYLIST_TRACKS_REMOVED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.POINTER(_ctypes.c_int),
+        _ctypes.c_int, _ctypes.py_object)
+
+SP_PLAYLIST_TRACKS_MOVED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.POINTER(_ctypes.c_int),
+        _ctypes.c_int, _ctypes.c_int, _ctypes.py_object)
+
+SP_PLAYLIST_PLAYLIST_RENAMED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.py_object)
+
+SP_PLAYLIST_PLAYLIST_STATE_CHANGED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.py_object)
+
+SP_PLAYLIST_PLAYLIST_UPDATE_IN_PROGRESS_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), sp_bool, _ctypes.py_object)
+
+SP_PLAYLIST_PLAYLIST_METADATA_UPDATED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.py_object)
+
+SP_PLAYLIST_TRACK_CREATED_CHANGED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.c_int, _ctypes.POINTER(sp_user),
+        _ctypes.c_int, _ctypes.py_object)
+
+SP_PLAYLIST_TRACK_SEEN_CHANGED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.c_int, sp_bool,
+        _ctypes.py_object)
+
+SP_PLAYLIST_DESCRIPTION_CHANGED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.c_char_p, _ctypes.py_object)
+
+SP_PLAYLIST_IMAGE_CHANGED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.POINTER(_ctypes.c_ubyte),
+        _ctypes.py_object)
+
+SP_PLAYLIST_TRACK_MESSAGE_CHANGED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.c_int, _ctypes.c_char_p,
+        _ctypes.py_object)
+
+SP_PLAYLIST_SUBSCRIBERS_CHANGED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlist), _ctypes.py_object)
+
+class sp_playlist_callbacks(_ctypes.Structure):
+    _fields_ = [
+        ('tracks_added', SP_PLAYLIST_TRACKS_ADDED_FUNC),
+        ('tracks_removed', SP_PLAYLIST_TRACKS_REMOVED_FUNC),
+        ('tracks_moved', SP_PLAYLIST_TRACKS_MOVED_FUNC),
+        ('playlist_renamed', SP_PLAYLIST_PLAYLIST_RENAMED_FUNC),
+        ('playlist_state_changed', SP_PLAYLIST_PLAYLIST_STATE_CHANGED_FUNC),
+        ('playlist_update_in_progress',
+            SP_PLAYLIST_PLAYLIST_UPDATE_IN_PROGRESS_FUNC),
+        ('playlist_metadata_updated',
+            SP_PLAYLIST_PLAYLIST_METADATA_UPDATED_FUNC),
+        ('track_created_changed', SP_PLAYLIST_TRACK_CREATED_CHANGED_FUNC),
+        ('track_seen_changed', SP_PLAYLIST_TRACK_SEEN_CHANGED_FUNC),
+        ('description_changed', SP_PLAYLIST_DESCRIPTION_CHANGED_FUNC),
+        ('image_changed', SP_PLAYLIST_IMAGE_CHANGED_FUNC),
+        ('track_message_changed', SP_PLAYLIST_TRACK_MESSAGE_CHANGED_FUNC),
+        ('subscribers_changed', SP_PLAYLIST_SUBSCRIBERS_CHANGED_FUNC),
+    ]
+
+_sp_playlist_is_loaded = _libspotify.sp_playlist_is_loaded
+_sp_playlist_is_loaded.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_is_loaded.restype = sp_bool
+
+def sp_playlist_is_loaded(playlist):
+    return (_sp_playlist_is_loaded(playlist) != 0)
+
+_sp_playlist_add_callbacks = _libspotify.sp_playlist_add_callbacks
+_sp_playlist_add_callbacks.argtypes = [_ctypes.POINTER(sp_playlist),
+        _ctypes.POINTER(sp_playlist_callbacks), _ctypes.py_object]
+_sp_playlist_add_callbacks.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_add_callbacks(playlist, callbacks, userdata):
+    return _sp_playlist_add_callbacks(playlist, callbacks, userdata)
+
+_sp_playlist_remove_callbacks = _libspotify.sp_playlist_remove_callbacks
+_sp_playlist_remove_callbacks.argtypes = [_ctypes.POINTER(sp_playlist),
+        _ctypes.POINTER(sp_playlist_callbacks), _ctypes.py_object]
+_sp_playlist_remove_callbacks.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_remove_callbacks(playlist, callbacks, userdata):
+    return _sp_playlist_remove_callbacks(playlist, callbacks, userdata)
+
+_sp_playlist_num_tracks = _libspotify.sp_playlist_num_tracks
+_sp_playlist_num_tracks.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_num_tracks.restype = _ctypes.c_int
+
+def sp_playlist_num_tracks(playlist):
+    return _sp_playlist_num_tracks(playlist)
+
+_sp_playlist_track = _libspotify.sp_playlist_track
+_sp_playlist_track.argtypes = [_ctypes.POINTER(sp_playlist), _ctypes.c_int]
+_sp_playlist_track.restype = _ctypes.POINTER(sp_track)
+
+def sp_playlist_track(playlist, index):
+    return _sp_playlist_track(playlist, index)
+
+_sp_playlist_track_create_time = _libspotify.sp_playlist_track_create_time
+_sp_playlist_track_create_time.argtypes = [_ctypes.POINTER(sp_playlist), _ctypes.c_int]
+_sp_playlist_track_create_time.restype = _ctypes.c_int
+
+def sp_playlist_track_create_time(playlist, index):
+    return _sp_playlist_track_create_time(playlist, index)
+
+_sp_playlist_track_creator = _libspotify.sp_playlist_track_creator
+_sp_playlist_track_creator.argtypes = [_ctypes.POINTER(sp_playlist), _ctypes.c_int]
+_sp_playlist_track_creator.restype = _ctypes.POINTER(sp_user)
+
+def sp_playlist_track_creator(playlist, index):
+    return _sp_playlist_track_creator(playlist, index)
+
+_sp_playlist_track_seen = _libspotify.sp_playlist_track_seen
+_sp_playlist_track_seen.argtypes = [_ctypes.POINTER(sp_playlist), _ctypes.c_int]
+_sp_playlist_track_seen.restype = sp_bool
+
+def sp_playlist_track_seen(playlist, index):
+    return (_sp_playlist_track_seen(playlist, index) != 0)
+
+_sp_playlist_track_set_seen = _libspotify.sp_playlist_track_set_seen
+_sp_playlist_track_set_seen.argtypes = [_ctypes.POINTER(sp_playlist),
+        _ctypes.c_int, sp_bool]
+_sp_playlist_track_set_seen.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_track_set_seen(playlist, index, seen):
+    return _sp_playlist_track_set_seen(playlist, index, seen)
+
+_sp_playlist_track_message = _libspotify.sp_playlist_track_message
+_sp_playlist_track_message.argtypes = [_ctypes.POINTER(sp_playlist), _ctypes.c_int]
+_sp_playlist_track_message.restype = _ctypes.c_char_p
+
+def sp_playlist_track_message(playlist, index):
+    message = _sp_playlist_track_message(playlist, index)
+    if message is not None:
+        return message.decode('utf-8')
+
+_sp_playlist_name = _libspotify.sp_playlist_name
+_sp_playlist_name.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_name.restype = _ctypes.c_char_p
+
+def sp_playlist_name(playlist):
+    return _sp_playlist_name(playlist).decode('utf-8')
+
+_sp_playlist_rename = _libspotify.sp_playlist_rename
+_sp_playlist_rename.argtypes = [_ctypes.POINTER(sp_playlist), _ctypes.c_char_p]
+_sp_playlist_rename.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_rename(playlist, new_name):
+    return _sp_playlist_rename(playlist, new_name)
+
+_sp_playlist_owner = _libspotify.sp_playlist_owner
+_sp_playlist_owner.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_owner.restype = _ctypes.POINTER(sp_user)
+
+def sp_playlist_owner(playlist):
+    return _sp_playlist_owner(playlist)
+
+_sp_playlist_is_collaborative = _libspotify.sp_playlist_is_collaborative
+_sp_playlist_is_collaborative.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_is_collaborative.restype = sp_bool
+
+def sp_playlist_is_collaborative(playlist):
+    return (_sp_playlist_is_collaborative(playlist) != 0)
+
+_sp_playlist_set_collaborative = _libspotify.sp_playlist_set_collaborative
+_sp_playlist_set_collaborative.argtypes = [_ctypes.POINTER(sp_playlist),
+        sp_bool]
+_sp_playlist_set_collaborative.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_set_collaborative(playlist, collaborative):
+    return _sp_playlist_set_collaborative(playlist, collaborative)
+
+_sp_playlist_set_autolink_tracks = _libspotify.sp_playlist_set_autolink_tracks
+_sp_playlist_set_autolink_tracks.argtypes = [_ctypes.POINTER(sp_playlist),
+        sp_bool]
+_sp_playlist_set_autolink_tracks.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_set_autolink_tracks(playlist, link):
+    return _sp_playlist_set_autolink_tracks(playlist, link)
+
+_sp_playlist_get_description = _libspotify.sp_playlist_get_description
+_sp_playlist_get_description.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_get_description.restype = _ctypes.c_char_p
+
+def sp_playlist_get_description(playlist):
+    description = _sp_playlist_get_description(playlist)
+    if description is not None:
+        return description.decode('utf-8')
+
+_sp_playlist_get_image = _libspotify.sp_playlist_get_image
+_sp_playlist_get_image.argtypes = [_ctypes.POINTER(sp_playlist),
+        _ctypes.POINTER(_ctypes.c_ubyte)]
+_sp_playlist_get_image.restype = sp_bool
+
+def sp_playlist_get_image(playlist):
+    image = (_ctypes.c_ubyte * 20)()
+    has_image = _sp_playlist_get_image(playlist, image)
+    if has_image:
+        return image
+
+_sp_playlist_has_pending_changes = _libspotify.sp_playlist_has_pending_changes
+_sp_playlist_has_pending_changes.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_has_pending_changes.restype = sp_bool
+
+def sp_playlist_has_pending_changes(playlist):
+    return (_sp_playlist_has_pending_changes(playlist) != 0)
+
+_sp_playlist_add_tracks = _libspotify.sp_playlist_add_tracks
+_sp_playlist_add_tracks.argtypes = [_ctypes.POINTER(sp_playlist),
+        _ctypes.POINTER(_ctypes.POINTER(sp_track)), _ctypes.c_int,
+        _ctypes.c_int, _ctypes.POINTER(sp_session)]
+_sp_playlist_add_tracks.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_add_tracks(playlist, tracks, position, session):
+    tracks_array = (_ctypes.POINTER(sp_track) * len(tracks))(*tracks)
+    return _sp_playlist_add_tracks(playlist, tracks_array, len(tracks),
+            position, session)
+
+_sp_playlist_remove_tracks = _libspotify.sp_playlist_remove_tracks
+_sp_playlist_remove_tracks.argtypes = [_ctypes.POINTER(sp_playlist),
+        _ctypes.POINTER(_ctypes.c_int), _ctypes.c_int]
+_sp_playlist_remove_tracks.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_remove_tracks(playlist, tracks):
+    tracks_array = (_ctypes.c_int * len(tracks))(*tracks)
+    return _sp_playlist_remove_tracks(playlist, tracks_array, len(tracks))
+
+_sp_playlist_reorder_tracks = _libspotify.sp_playlist_reorder_tracks
+_sp_playlist_reorder_tracks.argtypes = [_ctypes.POINTER(sp_playlist),
+        _ctypes.POINTER(_ctypes.c_int), _ctypes.c_int, _ctypes.c_int]
+_sp_playlist_reorder_tracks.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_reorder_tracks(playlist, tracks, new_position):
+    tracks_array = (_ctypes.c_int * len(tracks))(*tracks)
+    return _sp_playlist_reorder_tracks(playlist, tracks_array, len(tracks),
+            new_position)
+
+_sp_playlist_num_subscribers = _libspotify.sp_playlist_num_subscribers
+_sp_playlist_num_subscribers.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_num_subscribers.restype = _ctypes.c_uint
+
+def sp_playlist_num_subscribers(playlist):
+    return _sp_playlist_num_subscribers(playlist)
+
+_sp_playlist_subscribers = _libspotify.sp_playlist_subscribers
+_sp_playlist_subscribers.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_subscribers.restype = _ctypes.POINTER(sp_subscribers)
+
+_sp_playlist_subscribers_free = _libspotify.sp_playlist_subscribers_free
+_sp_playlist_subscribers_free.argtypes = [_ctypes.POINTER(sp_subscribers)]
+_sp_playlist_subscribers_free.restype = sp_error
+
+def sp_playlist_subscribers(playlist):
+    subscribers_struct = _sp_playlist_subscribers(playlist)
+    subscribers = [subscribers_struct.subscribers[i].value.decode('utf-8')
+                        for i in range(subscribers_struct.count.value)]
+    _sp_playlist_subscribers_free(subscribers_struct)
+    return subscribers
+
+_sp_playlist_update_subscribers = _libspotify.sp_playlist_update_subscribers
+_sp_playlist_update_subscribers.argtypes = [_ctypes.POINTER(sp_playlist),
+        _ctypes.POINTER(sp_session)]
+_sp_playlist_update_subscribers.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_update_subscribers(playlist, session):
+    return _sp_playlist_update_subscribers(playlist, session)
+
+_sp_playlist_is_in_ram = _libspotify.sp_playlist_is_in_ram
+_sp_playlist_is_in_ram.argtypes = [_ctypes.POINTER(sp_session),
+        _ctypes.POINTER(sp_playlist)]
+_sp_playlist_is_in_ram.restype = sp_bool
+
+def sp_playlist_is_in_ram(session, playlist):
+    return (_sp_playlist_is_in_ram(session, playlist) != 0)
+
+_sp_playlist_set_in_ram = _libspotify.sp_playlist_set_in_ram
+_sp_playlist_set_in_ram.argtypes = [_ctypes.POINTER(sp_session),
+        _ctypes.POINTER(sp_playlist), sp_bool]
+_sp_playlist_set_in_ram.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_set_in_ram(session, playlist, in_ram):
+    return _sp_playlist_set_in_ram(session, playlist, in_ram)
+
+_sp_playlist_create = _libspotify.sp_playlist_create
+_sp_playlist_create.argtypes = [_ctypes.POINTER(sp_session),
+        _ctypes.POINTER(sp_link)]
+_sp_playlist_create.restype = _ctypes.POINTER(sp_playlist)
+
+def sp_playlist_create(session, link):
+    return _sp_playlist_create(session, link)
+
+_sp_playlist_set_offline_mode = _libspotify.sp_playlist_set_offline_mode
+_sp_playlist_set_offline_mode.argtypes = [_ctypes.POINTER(sp_session),
+        _ctypes.POINTER(sp_playlist), sp_bool]
+_sp_playlist_set_offline_mode.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_set_offline_mode(session, playlist, offline):
+    return _sp_playlist_set_offline_mode(session, playlist, offline)
+
+_sp_playlist_get_offline_status = _libspotify.sp_playlist_get_offline_status
+_sp_playlist_get_offline_status.argtypes = [_ctypes.POINTER(sp_session),
+        _ctypes.POINTER(sp_playlist)]
+_sp_playlist_get_offline_status.restype = sp_playlist_offline_status
+
+def sp_playlist_get_offline_status(session, playlist):
+    return _sp_playlist_get_offline_status(session, playlist)
+
+_sp_playlist_get_offline_download_completed = _libspotify.sp_playlist_get_offline_download_completed
+_sp_playlist_get_offline_download_completed.argtypes = [_ctypes.POINTER(sp_session),
+        _ctypes.POINTER(sp_playlist)]
+_sp_playlist_get_offline_download_completed.restype = _ctypes.c_int
+
+def sp_playlist_get_offline_download_completed(session, playlist):
+    return _sp_playlist_get_offline_download_completed(session, playlist)
+
+_sp_playlist_add_ref = _libspotify.sp_playlist_add_ref
+_sp_playlist_add_ref.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_add_ref(playlist):
+    return _sp_playlist_add_ref(playlist)
+
+_sp_playlist_release = _libspotify.sp_playlist_release
+_sp_playlist_release.argtypes = [_ctypes.POINTER(sp_playlist)]
+_sp_playlist_release.restype = sp_error
+
+@returns_sp_error
+def sp_playlist_release(playlist):
+    return _sp_playlist_release(playlist)
