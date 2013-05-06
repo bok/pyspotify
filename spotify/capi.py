@@ -2200,3 +2200,49 @@ _sp_playlistcontainer_clear_unseen_tracks.restype = _ctypes.c_int
 
 def sp_playlistcontainer_clear_unseen_tracks(container, playlist):
     return _sp_playlistcontainer_clear_unseen_tracks(container, playlist)
+
+### User handling
+
+sp_relation_type = _ctypes.c_int
+
+SP_RELATION_TYPE_UNKNOWN        = 0
+SP_RELATION_TYPE_NONE           = 1
+SP_RELATION_TYPE_UNIDIRECTIONAL = 2
+SP_RELATION_TYPE_BIDIRECTIONAL  = 3
+
+_sp_user_canonical_name = _libspotify.sp_user_canonical_name
+_sp_user_canonical_name.argtypes = [_ctypes.POINTER(sp_user)]
+_sp_user_canonical_name.restype = _ctypes.c_char_p
+
+def sp_user_canonical_name(user):
+    return _sp_user_canonical_name(user).decode('utf-8')
+
+_sp_user_display_name = _libspotify.sp_user_display_name
+_sp_user_display_name.argtypes = [_ctypes.POINTER(sp_user)]
+_sp_user_display_name.restype = _ctypes.c_char_p
+
+def sp_user_display_name(user):
+    return _sp_user_display_name(user).decode('utf-8')
+
+_sp_user_is_loaded = _libspotify.sp_user_is_loaded
+_sp_user_is_loaded.argtypes = [_ctypes.POINTER(sp_user)]
+_sp_user_is_loaded.restype = sp_bool
+
+def sp_user_is_loaded(user):
+    return (_sp_user_is_loaded(user) != 0)
+
+_sp_user_add_ref = _libspotify.sp_user_add_ref
+_sp_user_add_ref.argtypes = [_ctypes.POINTER(sp_user)]
+_sp_user_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_user_add_ref(user):
+    return _sp_user_add_ref(user)
+
+_sp_user_release = _libspotify.sp_user_release
+_sp_user_release.argtypes = [_ctypes.POINTER(sp_user)]
+_sp_user_release.restype = sp_error
+
+@returns_sp_error
+def sp_user_release(user):
+    return _sp_user_release(user)
