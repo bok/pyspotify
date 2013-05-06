@@ -148,6 +148,8 @@ SP_BITRATE_160k = 0
 SP_BITRATE_320k = 1
 SP_BITRATE_96k = 2
 
+sp_playlist_type = _ctypes.c_int
+
 SP_PLAYLIST_TYPE_PLAYLIST = 0
 SP_PLAYLIST_TYPE_START_FOLDER = 1
 SP_PLAYLIST_TYPE_END_FOLDER = 2
@@ -1983,3 +1985,218 @@ _sp_playlist_release.restype = sp_error
 @returns_sp_error
 def sp_playlist_release(playlist):
     return _sp_playlist_release(playlist)
+
+### Playlist containers
+
+SP_PLAYLISTCONTAINER_PLAYLIST_ADDED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlistcontainer), _ctypes.POINTER(sp_playlist),
+        _ctypes.c_int, _ctypes.py_object)
+
+SP_PLAYLISTCONTAINER_PLAYLIST_REMOVED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlistcontainer), _ctypes.POINTER(sp_playlist),
+        _ctypes.c_int, _ctypes.py_object)
+
+SP_PLAYLISTCONTAINER_PLAYLIST_MOVED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlistcontainer), _ctypes.POINTER(sp_playlist),
+        _ctypes.c_int, _ctypes.c_int, _ctypes.py_object)
+
+SP_PLAYLISTCONTAINER_CONTAINER_LOADED_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_playlistcontainer), _ctypes.py_object)
+
+class sp_playlistcontainer_callbacks(_ctypes.Structure):
+    _fields_ = [
+        ('playlist_added', SP_PLAYLISTCONTAINER_PLAYLIST_ADDED_FUNC),
+        ('playlist_removed', SP_PLAYLISTCONTAINER_PLAYLIST_REMOVED_FUNC),
+        ('playlist_moved', SP_PLAYLISTCONTAINER_PLAYLIST_MOVED_FUNC),
+        ('container_loaded', SP_PLAYLISTCONTAINER_CONTAINER_LOADED_FUNC),
+    ]
+
+_sp_playlistcontainer_add_callbacks = \
+        _libspotify.sp_playlistcontainer_add_callbacks
+_sp_playlistcontainer_add_callbacks.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer),
+        _ctypes.POINTER(sp_playlistcontainer_callbacks), _ctypes.py_object]
+_sp_playlistcontainer_add_callbacks.restype = sp_error
+
+@returns_sp_error
+def sp_playlistcontainer_add_callbacks(container, callbacks, userdata):
+    return _sp_playlistcontainer_add_callbacks(container, callbacks,
+            userdata)
+
+_sp_playlistcontainer_remove_callbacks = \
+        _libspotify.sp_playlistcontainer_remove_callbacks
+_sp_playlistcontainer_remove_callbacks.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer),
+        _ctypes.POINTER(sp_playlistcontainer_callbacks), _ctypes.py_object]
+_sp_playlistcontainer_remove_callbacks.restype = sp_error
+
+@returns_sp_error
+def sp_playlistcontainer_remove_callbacks(container, callbacks,
+        userdata):
+    return _sp_playlistcontainer_remove_callbacks(container, callbacks,
+            userdata)
+
+_sp_playlistcontainer_num_playlists = \
+        _libspotify.sp_playlistcontainer_num_playlists
+_sp_playlistcontainer_num_playlists.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer)]
+_sp_playlistcontainer_num_playlists.restype = _ctypes.c_int
+
+def sp_playlistcontainer_num_playlists(playlistcontainer):
+    return _sp_playlistcontainer_num_playlists(playlistcontainer)
+
+_sp_playlistcontainer_is_loaded = _libspotify.sp_playlistcontainer_is_loaded
+_sp_playlistcontainer_is_loaded.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer)]
+_sp_playlistcontainer_is_loaded.restype = sp_bool
+
+def sp_playlistcontainer_is_loaded(playlistcontainer):
+    return (_sp_playlistcontainer_is_loaded(playlistcontainer) != 0)
+
+_sp_playlistcontainer_playlist = _libspotify.sp_playlistcontainer_playlist
+_sp_playlistcontainer_playlist.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.c_int]
+_sp_playlistcontainer_playlist.restype = _ctypes.POINTER(sp_playlist)
+
+def sp_playlistcontainer_playlist(container, index):
+    return _sp_playlistcontainer_playlist(container, index)
+
+_sp_playlistcontainer_playlist_type = \
+        _libspotify.sp_playlistcontainer_playlist_type
+_sp_playlistcontainer_playlist_type.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.c_int]
+_sp_playlistcontainer_playlist_type.restype = sp_playlist_type
+
+def sp_playlistcontainer_playlist_type(container, index):
+    return _sp_playlistcontainer_playlist_type(container, index)
+
+_sp_playlistcontainer_playlist_folder_name = \
+        _libspotify.sp_playlistcontainer_playlist_folder_name
+_sp_playlistcontainer_playlist_folder_name.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.c_int,
+                _ctypes.c_char_p, _ctypes.c_int]
+_sp_playlistcontainer_playlist_folder_name.restype = sp_error
+
+def sp_playlistcontainer_playlist_folder_name(container, index):
+    buf = _ctypes.create_string_buffer(256)
+    err = _sp_playlistcontainer_playlist_folder_name(container, index,
+            buf, 256)
+    if err != SP_ERROR_OK:
+        raise SpError(err)
+    return buf.value.decode('utf-8')
+
+_sp_playlistcontainer_playlist_folder_id = \
+        _libspotify.sp_playlistcontainer_playlist_folder_id
+_sp_playlistcontainer_playlist_folder_id.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.c_int]
+_sp_playlistcontainer_playlist_folder_id.restype = _ctypes.c_uint64
+
+def sp_playlistcontainer_playlist_folder_id(container, index):
+    return _sp_playlistcontainer_playlist_folder_id(container, index)
+
+_sp_playlistcontainer_add_new_playlist = \
+        _libspotify.sp_playlistcontainer_add_new_playlist
+_sp_playlistcontainer_add_new_playlist.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.c_char_p]
+_sp_playlistcontainer_add_new_playlist.restype = _ctypes.POINTER(sp_playlist)
+
+def sp_playlistcontainer_add_new_playlist(container, name):
+    return _sp_playlistcontainer_add_new_playlist(container,
+            name.encode('utf-8'))
+
+_sp_playlistcontainer_add_playlist = \
+        _libspotify.sp_playlistcontainer_add_playlist
+_sp_playlistcontainer_add_playlist.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.POINTER(sp_link)]
+_sp_playlistcontainer_add_playlist.restype = _ctypes.POINTER(sp_playlist)
+
+def sp_playlistcontainer_add_playlist(container, link):
+    return _sp_playlistcontainer_add_playlist(container, link)
+
+_sp_playlistcontainer_remove_playlist = \
+        _libspotify.sp_playlistcontainer_remove_playlist
+_sp_playlistcontainer_remove_playlist.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.c_int]
+_sp_playlistcontainer_remove_playlist.restype = sp_error
+
+@returns_sp_error
+def sp_playlistcontainer_remove_playlist(container, index):
+    return _sp_playlistcontainer_remove_playlist(container, index)
+
+_sp_playlistcontainer_move_playlist = \
+        _libspotify.sp_playlistcontainer_move_playlist
+_sp_playlistcontainer_move_playlist.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.c_int, _ctypes.c_int,
+                sp_bool]
+_sp_playlistcontainer_move_playlist.restype = sp_error
+
+@returns_sp_error
+def sp_playlistcontainer_move_playlist(container, index, new_position, dry_run):
+    return _sp_playlistcontainer_move_playlist(container, index, new_position,
+            dry_run)
+
+_sp_playlistcontainer_add_folder = \
+        _libspotify.sp_playlistcontainer_add_folder
+_sp_playlistcontainer_add_folder.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.c_int, _ctypes.c_char_p]
+_sp_playlistcontainer_add_folder.restype = sp_error
+
+@returns_sp_error
+def sp_playlistcontainer_add_folder(container, index, name):
+    return _sp_playlistcontainer_add_folder(container, index,
+            name.encode('utf-8'))
+
+_sp_playlistcontainer_owner = _libspotify.sp_playlistcontainer_owner
+_sp_playlistcontainer_owner.argtypes = [_ctypes.POINTER(sp_playlistcontainer)]
+_sp_playlistcontainer_owner.restype = _ctypes.POINTER(sp_user)
+
+def sp_playlistcontainer_owner(container):
+    return _sp_playlistcontainer_owner(container)
+
+_sp_playlistcontainer_add_ref = _libspotify.sp_playlistcontainer_add_ref
+_sp_playlistcontainer_add_ref.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer)]
+_sp_playlistcontainer_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_playlistcontainer_add_ref(playlistcontainer):
+    return _sp_playlistcontainer_add_ref(playlistcontainer)
+
+_sp_playlistcontainer_release = _libspotify.sp_playlistcontainer_release
+_sp_playlistcontainer_release.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer)]
+_sp_playlistcontainer_release.restype = sp_error
+
+@returns_sp_error
+def sp_playlistcontainer_release(playlistcontainer):
+    return _sp_playlistcontainer_release(playlistcontainer)
+
+_sp_playlistcontainer_get_unseen_tracks = \
+        _libspotify.sp_playlistcontainer_get_unseen_tracks
+_sp_playlistcontainer_get_unseen_tracks.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.POINTER(sp_playlist),
+                _ctypes.POINTER(_ctypes.POINTER(sp_track)), _ctypes.c_int]
+_sp_playlistcontainer_get_unseen_tracks.restype = _ctypes.c_int
+
+def sp_playlistcontainer_get_unseen_tracks(container, playlist):
+    # First, we get the number of unseen tracks
+    num_tracks = _sp_playlistcontainer_get_unseen_tracks(container, playlist,
+            None, 0)
+    if num_tracks < 0:
+        return None # Error
+    elif num_tracks == 0:
+        return []
+
+    tracks_array = (_ctypes.POINTER(sp_track) * num_tracks)()
+    _sp_playlistcontainer_get_unseen_tracks(container, playlist, tracks_array,
+            num_tracks)
+    return [tracks_array[i].value for i in range(num_tracks)]
+
+_sp_playlistcontainer_clear_unseen_tracks = \
+        _libspotify.sp_playlistcontainer_clear_unseen_tracks
+_sp_playlistcontainer_clear_unseen_tracks.argtypes = \
+        [_ctypes.POINTER(sp_playlistcontainer), _ctypes.POINTER(sp_playlist)]
+_sp_playlistcontainer_clear_unseen_tracks.restype = _ctypes.c_int
+
+def sp_playlistcontainer_clear_unseen_tracks(container, playlist):
+    return _sp_playlistcontainer_clear_unseen_tracks(container, playlist)
