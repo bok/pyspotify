@@ -2365,3 +2365,44 @@ _sp_toplistbrowse_backend_request_duration.restype = _ctypes.c_int
 
 def sp_toplistbrowse_backend_request_duration(toplistbrowse):
     return _sp_toplistbrowse_backend_request_duration(toplistbrowse)
+
+### Inbox subsystem
+
+SP_INBOX_INBOXPOST_COMPLETE_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_inbox), _ctypes.py_object)
+
+_sp_inbox_post_tracks = _libspotify.sp_inbox_post_tracks
+_sp_inbox_post_tracks.argtypes = [_ctypes.POINTER(sp_session),
+        _ctypes.c_char_p, _ctypes.POINTER(_ctypes.POINTER(sp_track)),
+            _ctypes.c_int, _ctypes.c_char_p, SP_INBOX_INBOXPOST_COMPLETE_FUNC,
+            _ctypes.py_object]
+_sp_inbox_post_tracks.restype = _ctypes.POINTER(sp_inbox)
+
+def sp_inbox_post_tracks(session, user, tracks, message, callback, userdata):
+    tracks_array = (sp_track * len(tracks))(*tracks)
+    return _sp_inbox_post_tracks(session, user.encode('utf-8'), tracks_array,
+            len(tracks), message.encode('utf-8'),
+            SP_INBOX_INBOXPOST_COMPLETE_FUNC(callback), userdata)
+
+_sp_inbox_error = _libspotify.sp_inbox_error
+_sp_inbox_error.argtypes = [_ctypes.POINTER(sp_inbox)]
+_sp_inbox_error.restype = sp_error
+
+def sp_inbox_error(inbox):
+    return _sp_inbox_error(inbox)
+
+_sp_inbox_add_ref = _libspotify.sp_inbox_add_ref
+_sp_inbox_add_ref.argtypes = [_ctypes.POINTER(sp_inbox)]
+_sp_inbox_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_inbox_add_ref(inbox):
+    return _sp_inbox_add_ref(inbox)
+
+_sp_inbox_release = _libspotify.sp_inbox_release
+_sp_inbox_release.argtypes = [_ctypes.POINTER(sp_inbox)]
+_sp_inbox_release.restype = sp_error
+
+@returns_sp_error
+def sp_inbox_release(inbox):
+    return _sp_inbox_release(inbox)
