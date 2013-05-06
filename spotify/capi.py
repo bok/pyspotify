@@ -2246,3 +2246,122 @@ _sp_user_release.restype = sp_error
 @returns_sp_error
 def sp_user_release(user):
     return _sp_user_release(user)
+
+### Toplist handling
+
+sp_toplisttype = _ctypes.c_int
+
+SP_TOPLIST_TYPE_ARTISTS = 0
+SP_TOPLIST_TYPE_ALBUMS  = 1
+SP_TOPLIST_TYPE_TRACKS  = 2
+
+sp_toplistregion = _ctypes.c_int
+
+# we want 'everywhere' and 'user' for these
+_SP_TOPLIST_REGION_EVERYWHERE = 0
+_SP_TOPLIST_REGION_USER       = 1
+
+def _str_to_toplistregion(region):
+    if region == 'everywhere':
+        return _SP_TOPLIST_REGION_EVERYWHERE
+    if region == 'user':
+        return _SP_TOPLIST_REGION_USER
+    return (ord(region[0]) << 8) | ord(region[1])
+
+SP_TOPLISTBROWSE_COMPLETE_FUNC = _ctypes.CFUNCTYPE(None,
+        _ctypes.POINTER(sp_toplistbrowse), _ctypes.py_object)
+
+_sp_toplistbrowse_create = _libspotify.sp_toplistbrowse_create
+_sp_toplistbrowse_create.argtypes = [_ctypes.POINTER(sp_session),
+        sp_toplisttype, sp_toplistregion, _ctypes.c_char_p,
+        SP_TOPLISTBROWSE_COMPLETE_FUNC, _ctypes.py_object]
+_sp_toplistbrowse_create.restype = _ctypes.POINTER(sp_toplistbrowse)
+
+def sp_toplistbrowse_create(toplistbrowse, type, region, username, callback,
+        userdata):
+    c_username = None
+    if username is not None:
+        c_username = username.encode('utf-8')
+
+    return _sp_toplistbrowse_create(toplistbrowse, type,
+            _str_to_toplistregion(region), c_username,
+            SP_TOPLISTBROWSE_COMPLETE_FUNC(callback), userdata)
+
+_sp_toplistbrowse_is_loaded = _libspotify.sp_toplistbrowse_is_loaded
+_sp_toplistbrowse_is_loaded.argtypes = [_ctypes.POINTER(sp_toplistbrowse)]
+_sp_toplistbrowse_is_loaded.restype = sp_bool
+
+def sp_toplistbrowse_is_loaded(toplistbrowse):
+    return (_sp_toplistbrowse_is_loaded(toplistbrowse) != 0)
+
+_sp_toplistbrowse_error = _libspotify.sp_toplistbrowse_error
+_sp_toplistbrowse_error.argtypes = [_ctypes.POINTER(sp_toplistbrowse)]
+_sp_toplistbrowse_error.restype = sp_error
+
+def sp_toplistbrowse_error(toplistbrowse):
+    return _sp_toplistbrowse_error(toplistbrowse)
+
+_sp_toplistbrowse_add_ref = _libspotify.sp_toplistbrowse_add_ref
+_sp_toplistbrowse_add_ref.argtypes = [_ctypes.POINTER(sp_toplistbrowse)]
+_sp_toplistbrowse_add_ref.restype = sp_error
+
+@returns_sp_error
+def sp_toplistbrowse_add_ref(toplistbrowse):
+    return _sp_toplistbrowse_add_ref(toplistbrowse)
+
+_sp_toplistbrowse_release = _libspotify.sp_toplistbrowse_release
+_sp_toplistbrowse_release.argtypes = [_ctypes.POINTER(sp_toplistbrowse)]
+_sp_toplistbrowse_release.restype = sp_error
+
+@returns_sp_error
+def sp_toplistbrowse_release(toplistbrowse):
+    return _sp_toplistbrowse_release(toplistbrowse)
+
+_sp_toplistbrowse_num_artists = _libspotify.sp_toplistbrowse_num_artists
+_sp_toplistbrowse_num_artists.argtypes = [_ctypes.POINTER(sp_toplistbrowse)]
+_sp_toplistbrowse_num_artists.restype = _ctypes.c_int
+
+def sp_toplistbrowse_num_artists(toplistbrowse):
+    return _sp_toplistbrowse_num_artists(toplistbrowse)
+
+_sp_toplistbrowse_artist = _libspotify.sp_toplistbrowse_artist
+_sp_toplistbrowse_artist.argtypes = [_ctypes.POINTER(sp_toplistbrowse), _ctypes.c_int]
+_sp_toplistbrowse_artist.restype = _ctypes.POINTER(sp_artist)
+
+def sp_toplistbrowse_artist(toplistbrowse, index):
+    return _sp_toplistbrowse_artist(toplistbrowse, index)
+
+_sp_toplistbrowse_num_albums = _libspotify.sp_toplistbrowse_num_albums
+_sp_toplistbrowse_num_albums.argtypes = [_ctypes.POINTER(sp_toplistbrowse)]
+_sp_toplistbrowse_num_albums.restype = _ctypes.c_int
+
+def sp_toplistbrowse_num_albums(toplistbrowse):
+    return _sp_toplistbrowse_num_albums(toplistbrowse)
+
+_sp_toplistbrowse_album = _libspotify.sp_toplistbrowse_album
+_sp_toplistbrowse_album.argtypes = [_ctypes.POINTER(sp_toplistbrowse), _ctypes.c_int]
+_sp_toplistbrowse_album.restype = _ctypes.POINTER(sp_album)
+
+def sp_toplistbrowse_album(toplistbrowse, index):
+    return _sp_toplistbrowse_album(toplistbrowse, index)
+
+_sp_toplistbrowse_num_tracks = _libspotify.sp_toplistbrowse_num_tracks
+_sp_toplistbrowse_num_tracks.argtypes = [_ctypes.POINTER(sp_toplistbrowse)]
+_sp_toplistbrowse_num_tracks.restype = _ctypes.c_int
+
+def sp_toplistbrowse_num_tracks(toplistbrowse):
+    return _sp_toplistbrowse_num_tracks(toplistbrowse)
+
+_sp_toplistbrowse_track = _libspotify.sp_toplistbrowse_track
+_sp_toplistbrowse_track.argtypes = [_ctypes.POINTER(sp_toplistbrowse), _ctypes.c_int]
+_sp_toplistbrowse_track.restype = _ctypes.POINTER(sp_track)
+
+def sp_toplistbrowse_track(toplistbrowse, index):
+    return _sp_toplistbrowse_track(toplistbrowse, index)
+
+_sp_toplistbrowse_backend_request_duration = _libspotify.sp_toplistbrowse_backend_request_duration
+_sp_toplistbrowse_backend_request_duration.argtypes = [_ctypes.POINTER(sp_toplistbrowse)]
+_sp_toplistbrowse_backend_request_duration.restype = _ctypes.c_int
+
+def sp_toplistbrowse_backend_request_duration(toplistbrowse):
+    return _sp_toplistbrowse_backend_request_duration(toplistbrowse)
