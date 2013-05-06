@@ -2406,3 +2406,10 @@ _sp_inbox_release.restype = sp_error
 @returns_sp_error
 def sp_inbox_release(inbox):
     return _sp_inbox_release(inbox)
+
+_sp_build_id = _libspotify.sp_build_id
+_sp_build_id.argtypes = []
+_sp_build_id.restype = _ctypes.c_char_p
+
+def sp_build_id():
+    return _sp_build_id().decode('utf-8')
