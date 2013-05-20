@@ -17,8 +17,13 @@ def _add_null_handler_for_logging():
 _add_null_handler_for_logging()
 # pylint: enable = W0404
 
+# Spotify objects
+from spotify.session import Session
+
+# Helpers
+from spotify.settings import Settings
+
 # XXX Temporarily disable for the CAPI branch
-#from spotify._spotify import Session
 #from spotify._spotify import Track
 #from spotify._spotify import Artist
 #from spotify._spotify import Album
