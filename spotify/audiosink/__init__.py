@@ -42,7 +42,7 @@ def import_audio_sink(audio_sinks=None):
                 % (module, cls))
             error_messages.append(traceback.format_exc())
     error_messages.append("Was not able to import any of the audio sinks")
-    raise ImportError, "\n".join(error_messages)
+    raise ImportError("\n".join(error_messages))
 
 
 class BaseAudioSink(object):
