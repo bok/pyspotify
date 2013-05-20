@@ -90,6 +90,13 @@ class Session(object):
                     pass
         return callbacks
 
+    def release(self):
+        """
+        Release the session. This will clean up all data and connections
+        associated with the session.
+        """
+        return capi.sp_session_release(self)
+
     def login(self, username, password=None, remember_me=False, blob=None):
         """
         Logs in the specified user to the Spotify service.
@@ -112,6 +119,35 @@ class Session(object):
         """
         return capi.sp_session_login(self, username, password, remember_me,
                                      blob)
+
+    def relogin(self):
+        """
+        Use this method if you want to re-login the last user who set the
+        ``remember_me`` flag in :meth:`Session.login`.
+        """
+        return capi.sp_session_relogin(self)
+
+    @property
+    def remembered_user(self):
+        """
+        Get username of the user that will be logged in via
+        :meth:`Session.relogin`.
+        """
+        return capi.sp_session_remembered_user(self)
+
+    @property
+    def user_name(self):
+        """
+        Fetches the currently logged in user.
+        """
+        return capi.sp_session_user_name(self)
+
+    def forget_me(self):
+        """
+        Remove stored credentials in libspotify. If no credentials are
+        currently stored, nothing will happen.
+        """
+        return capi.sp_session_forget_me(self)
 
     def logout(self):
         """
