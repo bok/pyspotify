@@ -155,6 +155,31 @@ class Session(object):
         """
         return capi.sp_session_logout(self)
 
+    def flush_caches(self):
+        """
+        This will make libspotify write all data that is meant to be stored on
+        disk to the disk immediately. libspotify does this periodically by
+        itself and also on logout. So under normal conditions this should never
+        need to be used.
+        """
+        return capi.sp_session_flush_caches(self)
+
+    @property
+    def connection_state(self):
+        """
+        The connection state of the specified session.
+
+        e.g. spotify.capi.SP_CONNECTION_STATE_LOGGED_IN
+        """
+        return capi.sp_session_connectionstate(self)
+
+    @property
+    def userdata(self):
+        """
+        The userdata associated with the session.
+        """
+        return capi.sp_session_userdata(self)
+
     def process_events(self):
         """
         Process any pending events.
